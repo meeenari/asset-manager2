@@ -1,12 +1,46 @@
-const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyDulm6VQn7tzAy1Hs08Wgjo_Mw04sfFl8I",
-    authDomain: "jaemi-ledger.firebaseapp.com",
-    databaseURL: "https://jaemi-ledger-default-rtdb.firebaseio.com",
-    projectId: "jaemi-ledger",
-    storageBucket: "jaemi-ledger.firebasestorage.app",
-    messagingSenderId: "904290874659",
-    appId: "1:904290874659:web:d4b8c6354422079b294896"
-};
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>재언&미나의 가계부 | 부부 자산관리</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <aside>
+            <div class="logo"><span>📔</span> 재미가계부</div>
+            <nav>
+                <ul>
+                    <li class="active" data-page="dashboard">
+                        <span>🏠</span> 공동 대시보드
+                    </li>
+                    <li data-page="dashboard-mina">
+                        <span>🔐</span> 미나 대시보드
+                    </li>
+                    <li data-page="expenses">
+                        <span>💸</span> 내역 관리
+                    </li>
+                    <li data-page="pm-summary">
+                        <span>📊</span> 결제수단별 내역
+                    </li>
+                    <li data-page="settings">
+                        <span>⚙️</span> 설정
+                    </li>
+                </ul>
+            </nav>
+            <div style="margin-top: auto; padding-top: 2rem;">
+                <div id="sync-status" style="font-size: 0.7rem; color: var(--text-dim); display: flex; align-items: center; gap: 5px;">
+                    <span id="sync-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #94a3b8;"></span>
+                    <span id="sync-text">연결 확인 중...</span>
+                </div>
+            </div>
+        </aside>
 
 const App = {
     db: null,
@@ -39,19 +73,72 @@ const App = {
         this.render();
     },
 
-    initFirebase() {
-        if (FIREBASE_CONFIG.apiKey === "YOUR_API_KEY") {
-            console.warn("Firebase config is not set. Running in local mode.");
-            return;
-        }
-        
-        try {
-            firebase.initializeApp(FIREBASE_CONFIG);
-            this.db = firebase.database();
-            
-            // Real-time sync from Firebase
-            this.db.ref('state').on('value', (snapshot) => {
-                const data = snapshot.val();
+        <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="glass-card animate-fade" style="border-top: 3px solid var(--primary-accent); display: flex; flex-direction: column; justify-content: center;">
+                <div class="stat-header" id="stat-main-label-1">현재 잔액</div>
+                <div class="stat-value" id="stat-main-value-1">₩0</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);" id="stat-sub-label-1">
+                    수입: <span id="stat-sub-inc-1">0</span> | 지출: <span id="stat-sub-exp-1">0</span>
+                </div>
+            </div>
+            <div class="glass-card animate-fade" style="border-top: 3px solid #10b981; display: flex; flex-direction: column; justify-content: center;" id="card-predicted">
+                <div class="stat-header">예측 잔액 (예산)</div>
+                <div class="stat-value" id="stat-predicted-value">₩0</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">
+                    고정 수입 - 고정 지출
+                </div>
+            </div>
+            <div class="glass-card animate-fade" style="border-top: 3px solid #f43f5e; display: flex; flex-direction: column; justify-content: center;" id="card-savings">
+                <div class="stat-header" id="stat-savings-label">💰 저축 누계</div>
+                <div class="stat-value" id="stat-accumulated-savings-v2">₩0</div>
+            </div>
+            <div class="glass-card animate-fade" style="border-top: 3px solid #8b5cf6; display: flex; flex-direction: column; justify-content: center;" id="card-card-spending">
+                <div class="stat-header">💳 당월 카드 지출</div>
+                <div class="stat-value" id="stat-card-spending">₩0</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">
+                    이번 달 실제 카드 사용 합계
+                </div>
+            </div>
+            <div class="glass-card animate-fade" style="border-top: 3px solid #fbbf24; display: flex; flex-direction: column; justify-content: center; display: none;" id="card-cumulative-expense">
+                <div class="stat-header">📊 개인 지출 누계</div>
+                <div class="stat-value" id="stat-cumulative-expense">₩0</div>
+            </div>
+        </div>
+
+        <div class="glass-card animate-fade" style="margin-bottom: 2rem; border-top: 3px solid var(--success);">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; align-items: center;">
+                <div id="col-living-balance">
+                    <div class="stat-header">💳 생활비 잔액</div>
+                    <div class="stat-value" id="stat-living-balance" style="color: var(--primary-accent); font-size: 1.5rem;">₩0</div>
+                    <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 4px;">(고정수입-고정지출) + 변동지출</div>
+                </div>
+                <div>
+                    <div class="stat-header">💰 총 저축 누계</div>
+                    <div class="stat-value" id="stat-accumulated-savings" style="color: var(--success); font-size: 1.8rem;">₩0</div>
+                </div>
+                <div id="col-emergency-balance" style="text-align: right;">
+                    <div class="stat-header">🛡️ 비상금통장 잔액</div>
+                    <div class="stat-value" id="stat-emergency-balance" style="font-size: 1.5rem;">₩0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-layout">
+            <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem;">
+                <div class="glass-card animate-fade">
+                    <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem;">📊 카테고리별 지출</h3>
+                    <div style="height: 300px;">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+                <div class="glass-card animate-fade">
+                    <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem;">🗓️ 고정비 일정</h3>
+                    <div id="fixed-timeline"></div>
+                </div>
+            </div>
+
+            <div class="glass-card forecast-card animate-fade" style="margin-top: 1rem;">
+                <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem;">💡 월말 지출 예측</h3>
                 
                 // Update UI status
                 const dot = document.getElementById('sync-dot');
@@ -1501,5 +1588,109 @@ const App = {
     }
 };
 
-window.App = App;
-document.addEventListener('DOMContentLoaded', () => App.init());
+            <div class="glass-card animate-fade" style="grid-column: span 2;">
+                <h3 style="margin-bottom: 1.5rem;">💳 결제 수단 관리 (통장/카드)</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <h4 style="font-size: 0.9rem; margin-bottom: 1rem;">통장 (계좌)</h4>
+                        <div id="accounts-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;"></div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="new-account" placeholder="새 통장 이름" style="margin-bottom: 0;">
+                            <button class="btn btn-secondary" id="add-account">추가</button>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.9rem; margin-bottom: 1rem;">카드</h4>
+                        <div id="cards-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;"></div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="new-card" placeholder="새 카드 이름" style="margin-bottom: 0;">
+                            <button class="btn btn-secondary" id="add-card">추가</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card animate-fade" style="grid-column: span 2;">
+                <h3 style="margin-bottom: 1.5rem;">🏷️ 항목(카테고리) 관리</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <h4 style="font-size: 0.9rem; margin-bottom: 1rem;">지출 항목</h4>
+                        <div id="expense-categories-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;"></div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="new-expense-category" placeholder="새 지출 항목" style="margin-bottom: 0;">
+                            <button class="btn btn-secondary" id="add-expense-category">추가</button>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.9rem; margin-bottom: 1rem;">수입 항목</h4>
+                        <div id="income-categories-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;"></div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="new-income-category" placeholder="새 수입 항목" style="margin-bottom: 0;">
+                            <button class="btn btn-secondary" id="add-income-category">추가</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-card animate-fade" style="grid-column: span 2;">
+                <h3 style="margin-bottom: 1.5rem;">🔒 보안 설정</h3>
+                <div style="max-width: 400px;">
+                    <label style="font-size: 0.8rem; color: var(--text-dim);">미나 대시보드 비밀번호 변경</label>
+                    <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 0.5rem;">
+                        <input type="password" id="current-mina-pass" placeholder="현재 비밀번호" style="margin-bottom: 0;">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="password" id="new-mina-pass" placeholder="새 비밀번호" style="margin-bottom: 0; flex: 1;">
+                            <button class="btn btn-secondary" id="save-mina-pass">변경</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- PM Summary Template -->
+    <template id="tpl-pm-summary">
+        <header class="animate-fade">
+            <div class="header-title">
+                <h1>결제수단별 내역</h1>
+                <p>월별, 결제수단별 지출 합계와 상세 내역을 확인하세요.</p>
+            </div>
+        </header>
+
+        <div class="glass-card animate-fade" style="margin-bottom: 2rem;">
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <input type="month" id="pm-summary-month" style="margin-bottom: 0; width: 160px;">
+                <select id="pm-summary-filter" style="margin-bottom: 0; flex: 1;">
+                    <option value="all">모든 결제수단</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="pm-summary-content" class="animate-fade">
+            <!-- Summary cards and table will be injected here -->
+        </div>
+    </template>
+
+    <!-- Password Prompt Template -->
+    <template id="tpl-password-prompt">
+        <div style="height: 80vh; display: flex; align-items: center; justify-content: center;">
+            <div class="glass-card animate-fade" style="width: 100%; max-width: 400px; text-align: center; padding: 3rem 2rem;">
+                <div style="font-size: 3rem; margin-bottom: 1.5rem;">🔐</div>
+                <h2 style="margin-bottom: 0.5rem;">미나의 비밀 공간</h2>
+                <p style="color: var(--text-dim); margin-bottom: 2rem; font-size: 0.9rem;">이 페이지를 보려면 비밀번호를 입력하세요.</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <input type="password" id="mina-pass-input" placeholder="비밀번호" style="text-align: center; font-size: 1.2rem; letter-spacing: 0.5rem; padding: 1rem;">
+                    <button class="btn" id="mina-pass-submit" style="width: 100%; padding: 1rem;">확인</button>
+                    <div id="pass-error" style="color: var(--danger); font-size: 0.85rem; margin-top: 0.5rem; display: none;">비밀번호가 일치하지 않습니다.</div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
