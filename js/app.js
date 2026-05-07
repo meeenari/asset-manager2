@@ -277,7 +277,7 @@ const App = {
         const headerH1 = document.querySelector('.header-title h1');
         const headerP = document.querySelector('.header-title p');
         if (headerH1) headerH1.textContent = mode === 'common' ? '🏠 공동 대시보드' : '👩‍🎨 미나 개인 대시보드';
-        if (headerP) headerP.textContent = mode === 'common' ? '부부 공동의 자산 흐름을 확인하세요.' : '미나님만의 비밀 자산 내역입니다.';
+        if (headerP) headerP.textContent = mode === 'common' ? '우리 공동의 자산 흐름을 확인하세요.' : '미나님만의 비밀 자산 내역입니다.';
 
         const monthSelect = document.getElementById('dashboard-month-select');
         monthSelect.value = this.state.selectedMonth;
