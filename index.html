@@ -26,6 +26,9 @@
                     <li data-page="expenses">
                         <span>💸</span> 내역 관리
                     </li>
+                    <li data-page="pm-summary">
+                        <span>📊</span> 결제수단별 내역
+                    </li>
                     <li data-page="settings">
                         <span>⚙️</span> 설정
                     </li>
@@ -75,6 +78,13 @@
                 <div class="stat-header" id="stat-savings-label">💰 저축 누계</div>
                 <div class="stat-value" id="stat-accumulated-savings-v2">₩0</div>
             </div>
+            <div class="glass-card animate-fade" style="border-top: 3px solid #8b5cf6; display: flex; flex-direction: column; justify-content: center;" id="card-card-spending">
+                <div class="stat-header">💳 당월 카드 지출</div>
+                <div class="stat-value" id="stat-card-spending">₩0</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">
+                    이번 달 실제 카드 사용 합계
+                </div>
+            </div>
             <div class="glass-card animate-fade" style="border-top: 3px solid #fbbf24; display: flex; flex-direction: column; justify-content: center; display: none;" id="card-cumulative-expense">
                 <div class="stat-header">📊 개인 지출 누계</div>
                 <div class="stat-value" id="stat-cumulative-expense">₩0</div>
@@ -82,10 +92,19 @@
         </div>
 
         <div class="glass-card animate-fade" style="margin-bottom: 2rem; border-top: 3px solid var(--success);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; align-items: center;">
+                <div id="col-living-balance">
+                    <div class="stat-header">💳 생활비 잔액</div>
+                    <div class="stat-value" id="stat-living-balance" style="color: var(--primary-accent); font-size: 1.5rem;">₩0</div>
+                    <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 4px;">(고정수입-고정지출) + 변동지출</div>
+                </div>
                 <div>
                     <div class="stat-header">💰 총 저축 누계</div>
                     <div class="stat-value" id="stat-accumulated-savings" style="color: var(--success); font-size: 1.8rem;">₩0</div>
+                </div>
+                <div id="col-emergency-balance" style="text-align: right;">
+                    <div class="stat-header">🛡️ 비상금통장 잔액</div>
+                    <div class="stat-value" id="stat-emergency-balance" style="font-size: 1.5rem;">₩0</div>
                 </div>
             </div>
         </div>
@@ -361,6 +380,29 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </template>
+
+    <!-- PM Summary Template -->
+    <template id="tpl-pm-summary">
+        <header class="animate-fade">
+            <div class="header-title">
+                <h1>결제수단별 내역</h1>
+                <p>월별, 결제수단별 지출 합계와 상세 내역을 확인하세요.</p>
+            </div>
+        </header>
+
+        <div class="glass-card animate-fade" style="margin-bottom: 2rem;">
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <input type="month" id="pm-summary-month" style="margin-bottom: 0; width: 160px;">
+                <select id="pm-summary-filter" style="margin-bottom: 0; flex: 1;">
+                    <option value="all">모든 결제수단</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="pm-summary-content" class="animate-fade">
+            <!-- Summary cards and table will be injected here -->
         </div>
     </template>
 
