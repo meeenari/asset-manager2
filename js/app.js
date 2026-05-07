@@ -1374,6 +1374,7 @@ const App = {
             alert(`${addedCount}개의 고정비 지출처리가 완료되었습니다.`);
         } else {
             alert('이미 모든 고정비가 처리되었습니다.');
+        }
     },
 
     calculateEmergencyBalance() {
