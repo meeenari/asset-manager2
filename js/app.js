@@ -243,6 +243,8 @@ const App = {
             this.initDashboard('mina');
         } else if (this.state.currentPage === 'expenses') {
             this.initExpenses();
+        } else if (this.state.currentPage === 'pm-summary') {
+            this.initPmSummary();
         } else if (this.state.currentPage === 'settings') {
             this.initSettings();
         }
@@ -431,9 +433,52 @@ const App = {
         const summarySavingsEl = document.getElementById('stat-accumulated-savings');
         if (summarySavingsEl) summarySavingsEl.textContent = `₩${accumulatedSavings.toLocaleString()}`;
         
-        const remainingEl = document.getElementById('stat-remaining');
-        remainingEl.textContent = `₩${totalRemaining.toLocaleString()}`;
-        remainingEl.className = `stat-value ${totalRemaining < 0 ? 'trend-down' : 'trend-up'}`;
+        // --- New Metrics for Common Dashboard ---
+        if (mode === 'common') {
+            // 1. Living Expense Balance
+            // (Fixed Income - Fixed Expense) + (Current Month Expenses excluding Fixed Expenses)
+            // Note: Since expenses are positive, this is (Fixed Income - Fixed Expense) - (Variable Expenses)
+            const variableExpenses = filteredTransactions
+                .filter(t => t.type === 'expense' && t.spendingType === 'common' && !t.isAutoFixed && !t.fixedCostName)
+                .reduce((sum, item) => sum + item.amount, 0);
+            
+            const livingBalance = (totalFixedIncomeBase - totalFixedExpense) - variableExpenses;
+            const livingBalanceEl = document.getElementById('stat-living-balance');
+            if (livingBalanceEl) {
+                livingBalanceEl.textContent = `₩${livingBalance.toLocaleString()}`;
+                livingBalanceEl.style.color = livingBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)';
+            }
+
+            // 2. Monthly Card Spending (Actual spending in the selected month, not shifted)
+            const actualMonthCardSpending = this.state.transactions
+                .filter(t => {
+                    const isCorrectMonth = t.date.startsWith(this.state.selectedMonth);
+                    const isCard = t.paymentMethod && t.paymentMethod.type === 'card';
+                    const isCommon = (t.type === 'expense' && t.spendingType === 'common');
+                    return isCorrectMonth && isCard && isCommon;
+                })
+                .reduce((sum, item) => sum + item.amount, 0);
+            
+            const cardSpendingEl = document.getElementById('stat-card-spending');
+            if (cardSpendingEl) cardSpendingEl.textContent = `₩${actualMonthCardSpending.toLocaleString()}`;
+
+            // 3. Emergency Fund Balance (Current total balance)
+            const emergencyBalance = this.calculateEmergencyBalance();
+            const emergencyBalanceEl = document.getElementById('stat-emergency-balance');
+            if (emergencyBalanceEl) emergencyBalanceEl.textContent = `₩${emergencyBalance.toLocaleString()}`;
+            
+            // Show/Hide cols for Mina mode
+            const colLiving = document.getElementById('col-living-balance');
+            const colEmergency = document.getElementById('col-emergency-balance');
+            if (colLiving) colLiving.style.display = 'block';
+            if (colEmergency) colEmergency.style.display = 'block';
+        } else {
+            // Mina Mode: Hide these or show something else
+            const colLiving = document.getElementById('col-living-balance');
+            const colEmergency = document.getElementById('col-emergency-balance');
+            if (colLiving) colLiving.style.display = 'none';
+            if (colEmergency) colEmergency.style.display = 'none';
+        }
 
         // Prepare data for advanced forecasting
         const variableExp = filteredTransactions
@@ -622,7 +667,11 @@ const App = {
         
         const accounts = (this.state.paymentMethods.accounts || []).map(name => `<option value="account|${name}">🏦 ${name}</option>`).join('');
         const cards = (this.state.paymentMethods.cards || []).map(name => `<option value="card|${name}">💳 ${name}</option>`).join('');
-        paymentSelect.innerHTML = (accounts + cards) || '<option value="">결제 수단 없음</option>';
+        
+        // Add virtual Emergency Fund account to payment methods if not already there
+        const emergencyOption = `<option value="account|비상금통장">🛡️ 비상금통장</option>`;
+        
+        paymentSelect.innerHTML = (accounts + cards + emergencyOption) || '<option value="">결제 수단 없음</option>';
 
         // Manual Expense Entry
         document.getElementById('add-manual-expense').onclick = () => {
@@ -1325,7 +1374,130 @@ const App = {
             alert(`${addedCount}개의 고정비 지출처리가 완료되었습니다.`);
         } else {
             alert('이미 모든 고정비가 처리되었습니다.');
-        }
+    },
+
+    calculateEmergencyBalance() {
+        // Emergency Fund Balance = Sum of expenses with category "비상금" (Deposits)
+        // - Sum of expenses with paymentMethod.name "비상금통장" (Withdrawals)
+        const deposits = this.state.transactions
+            .filter(t => t.type === 'expense' && t.category === '비상금')
+            .reduce((sum, item) => sum + item.amount, 0);
+        
+        const withdrawals = this.state.transactions
+            .filter(t => t.type === 'expense' && t.paymentMethod && t.paymentMethod.name === '비상금통장')
+            .reduce((sum, item) => sum + item.amount, 0);
+        
+        return deposits - withdrawals;
+    },
+
+    initPmSummary() {
+        const monthSelect = document.getElementById('pm-summary-month');
+        const filterSelect = document.getElementById('pm-summary-filter');
+        const content = document.getElementById('pm-summary-content');
+
+        if (!monthSelect || !filterSelect || !content) return;
+
+        monthSelect.value = this.state.selectedMonth;
+        
+        // Populate filter
+        const accounts = this.state.paymentMethods.accounts || [];
+        const cards = this.state.paymentMethods.cards || [];
+        filterSelect.innerHTML = '<option value="all">모든 결제수단</option>' +
+            accounts.map(a => `<option value="account|${a}">🏦 ${a}</option>`).join('') +
+            cards.map(c => `<option value="card|${c}">💳 ${c}</option>`).join('') +
+            '<option value="account|비상금통장">🛡️ 비상금통장</option>';
+
+        const render = () => {
+            const [type, name] = filterSelect.value.split('|');
+            const selectedMonth = monthSelect.value;
+            
+            const filtered = this.state.transactions.filter(t => {
+                const isInMonth = t.date.startsWith(selectedMonth);
+                if (!isInMonth) return false;
+                if (filterSelect.value === 'all') return true;
+                return t.paymentMethod && t.paymentMethod.type === type && t.paymentMethod.name === name;
+            });
+
+            // Group by payment method for summary cards if "all" is selected
+            let summaryHtml = '';
+            if (filterSelect.value === 'all') {
+                const pmMap = {};
+                filtered.filter(t => t.type === 'expense').forEach(t => {
+                    const pmKey = t.paymentMethod ? `${t.paymentMethod.type === 'account' ? '🏦' : '💳'} ${t.paymentMethod.name}` : '기타';
+                    pmMap[pmKey] = (pmMap[pmKey] || 0) + t.amount;
+                });
+
+                summaryHtml = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">';
+                for (const [pm, total] of Object.entries(pmMap)) {
+                    summaryHtml += `
+                        <div class="glass-card" style="padding: 1rem; border-left: 4px solid var(--primary-accent);">
+                            <div style="font-size: 0.8rem; color: var(--text-dim);">${pm}</div>
+                            <div style="font-size: 1.2rem; font-weight: 700; margin-top: 5px;">₩${total.toLocaleString()}</div>
+                        </div>
+                    `;
+                }
+                summaryHtml += '</div>';
+            } else {
+                const total = filtered.filter(t => t.type === 'expense').reduce((sum, item) => sum + item.amount, 0);
+                summaryHtml = `
+                    <div class="glass-card" style="padding: 1.5rem; margin-bottom: 2rem; border-left: 4px solid var(--primary-accent); display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 0.9rem; color: var(--text-dim);">${name || '선택된 결제수단'} 합계</div>
+                            <div style="font-size: 2rem; font-weight: 700; color: var(--primary-accent);">₩${total.toLocaleString()}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Table
+            let tableHtml = `
+                <div class="glass-card" style="padding: 0; overflow: hidden;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: rgba(0,0,0,0.02);">
+                                <th style="padding: 1rem; text-align: left;">날짜</th>
+                                <th style="padding: 1rem; text-align: left;">내용</th>
+                                <th style="padding: 1rem; text-align: left;">결제수단</th>
+                                <th style="padding: 1rem; text-align: right;">금액</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            filtered.sort((a, b) => b.date.localeCompare(a.date)).forEach(t => {
+                const pmLabel = t.paymentMethod ? `${t.paymentMethod.type === 'account' ? '🏦' : '💳'} ${t.paymentMethod.name}` : '-';
+                tableHtml += `
+                    <tr style="border-top: 1px solid var(--glass-border);">
+                        <td style="padding: 1rem; font-size: 0.9rem; color: var(--text-dim);">${t.date}</td>
+                        <td style="padding: 1rem; font-weight: 500;">${t.merchant}</td>
+                        <td style="padding: 1rem; font-size: 0.85rem;">${pmLabel}</td>
+                        <td style="padding: 1rem; text-align: right; font-weight: 600; color: ${t.type === 'income' ? 'var(--success)' : 'inherit'}">
+                            ${t.type === 'income' ? '+' : ''}₩${t.amount.toLocaleString()}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            if (filtered.length === 0) {
+                tableHtml += '<tr><td colspan="4" style="padding: 3rem; text-align: center; color: var(--text-dim);">내역이 없습니다.</td></tr>';
+            }
+
+            tableHtml += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            content.innerHTML = summaryHtml + tableHtml;
+        };
+
+        monthSelect.onchange = (e) => {
+            this.state.selectedMonth = e.target.value;
+            render();
+        };
+        filterSelect.onchange = render;
+
+        render();
     }
 };
 
