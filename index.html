@@ -127,24 +127,7 @@
                 <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem;">💡 월말 지출 예측</h3>
                 
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
-                    <!-- Common Forecast -->
-                    <div>
-                        <div style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.5rem;">🏠 공동 생활비 예측</div>
-                        <div class="stat-value forecast-value" id="projected-common" style="font-size: 1.2rem;">₩0</div>
-                        <div id="insight-common" style="font-size: 0.75rem; margin-top: 0.5rem; line-height: 1.4;"></div>
-                    </div>
-                    <!-- Jaeeon Forecast -->
-                    <div>
-                        <div style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.5rem;">👨‍💻 재언 개인 예측</div>
-                        <div class="stat-value forecast-value" id="projected-jaeeon" style="font-size: 1.2rem;">₩0</div>
-                        <div id="insight-jaeeon" style="font-size: 0.75rem; margin-top: 0.5rem; line-height: 1.4;"></div>
-                    </div>
-                    <!-- Mina Forecast -->
-                    <div>
-                        <div style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.5rem;">👩‍🎨 미나 개인 예측</div>
-                        <div class="stat-value forecast-value" id="projected-mina" style="font-size: 1.2rem;">₩0</div>
-                        <div id="insight-mina" style="font-size: 0.75rem; margin-top: 0.5rem; line-height: 1.4;"></div>
-                    </div>
+                    <!-- Forecast content injected by JS -->
                 </div>
                 <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-dim); display: flex; gap: 20px;">
                     <span>오늘: <span id="today-date"></span></span>
@@ -375,7 +358,7 @@
                         <input type="password" id="current-mina-pass" placeholder="현재 비밀번호" style="margin-bottom: 0;">
                         <div style="display: flex; gap: 8px;">
                             <input type="password" id="new-mina-pass" placeholder="새 비밀번호" style="margin-bottom: 0; flex: 1;">
-                            <button class="btn btn-secondary" id="save-mina-pass">변경</button>
+                            <button class="btn" id="save-mina-pass">변경</button>
                         </div>
                     </div>
                 </div>
