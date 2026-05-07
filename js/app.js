@@ -186,7 +186,10 @@ const App = {
                         merchant: `[자동] ${item.name}`,
                         amount: parseInt(item.amount),
                         category: item.category || '기타',
-                        paymentMethod: { type: 'account', name: item.source || '자동이체' },
+                        paymentMethod: { 
+                            type: this.state.paymentMethods.cards.includes(item.source) ? 'card' : 'account', 
+                            name: item.source || '자동이체' 
+                        },
                         isAutoFixed: true,
                         fixedCostName: item.name
                     });
@@ -298,8 +301,10 @@ const App = {
             
             let isInMonth = false;
             if (isCard) {
-                const reflectDate = new Date(tYear, tMonth, 1);
-                const reflectYearMonth = reflectDate.toISOString().slice(0, 7);
+                // If it's a card, it should be reflected in the next month's calculation
+                const tDateObj = new Date(t.date);
+                const nextMonthDate = new Date(tDateObj.getFullYear(), tDateObj.getMonth() + 1, 1);
+                const reflectYearMonth = nextMonthDate.toISOString().slice(0, 7);
                 isInMonth = reflectYearMonth === this.state.selectedMonth;
             } else {
                 isInMonth = t.date.startsWith(this.state.selectedMonth);
@@ -1361,7 +1366,10 @@ const App = {
                     merchant: `[고정] ${item.name}`,
                     amount: parseInt(item.amount),
                     category: item.category || '기타',
-                    paymentMethod: { type: 'account', name: item.source || '자동이체' },
+                    paymentMethod: { 
+                        type: this.state.paymentMethods.cards.includes(item.source) ? 'card' : 'account', 
+                        name: item.source || '자동이체' 
+                    },
                     isAutoFixed: true,
                     fixedCostName: item.name
                 });
