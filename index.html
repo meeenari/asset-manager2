@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>재미가계부 | 깔끔한 부부 자산관리</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <aside>
+            <div class="logo"><span>📔</span> 재미가계부</div>
+            <nav>
+                <ul>
+                    <li class="active" data-page="dashboard">
+                        <span>🏠</span> 공동 대시보드
+                    </li>
+                    <li data-page="dashboard-mina">
+                        <span>🔐</span> 미나 대시보드
+                    </li>
+                    <li data-page="expenses">
+                        <span>💸</span> 내역 관리
+                    </li>
+                    <li data-page="settings">
+                        <span>⚙️</span> 설정
+                    </li>
+                </ul>
+            </nav>
+            <div style="margin-top: auto; padding-top: 2rem;">
+                <div id="sync-status" style="font-size: 0.7rem; color: var(--text-dim); display: flex; align-items: center; gap: 5px;">
+                    <span id="sync-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #94a3b8;"></span>
+                    <span id="sync-text">연결 확인 중...</span>
+                </div>
+            </div>
+        </aside>
+
+        <main id="main-content">
+            <!-- Content injected here -->
+        </main>
+    </div>
+
+    <!-- Dashboard Template -->
+    <template id="tpl-dashboard">
+        <header class="animate-fade" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="header-title">
+                <h1>자산 분석</h1>
+                <p>부부의 자산 흐름을 월별로 확인하세요.</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="month" id="dashboard-month-select" style="margin-bottom: 0; width: 160px;">
+            </div>
+        </header>
+
+        <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="glass-card animate-fade" style="border-top: 3px solid var(--primary-accent); display: flex; flex-direction: column; justify-content: center;">
+                <div class="stat-header" id="stat-main-label-1">현재 잔액</div>
+                <div class="stat-value" id="stat-main-value-1">₩0</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);" id="stat-sub-label-1">
+                    수입: <span id="stat-sub-inc-1">0</span> | 지출: <span id="stat-sub-exp-1">0</span>
+                </div>
+            </div>
+            <div class="glass-card animate-fade" style="border-top: 3px solid #10b981; display: flex; flex-direction: column; justify-content: center;" id="card-predicted">
+                <div class="stat-header">예측 잔액 (예산)</div>
+                <div class="stat-value" id="stat-predicted-value">₩0</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">
+                    고정 수입 - 고정 지출
+                </div>
+            </div>
+            <div class="glass-card animate-fade" style="border-top: 3px solid #f43f5e; display: flex; flex-direction: column; justify-content: center;" id="card-savings">
+                <div class="stat-header" id="stat-savings-label">💰 저축 누계</div>
+                <div class="stat-value" id="stat-accumulated-savings-v2">₩0</div>
+            </div>
+            <div class="glass-card animate-fade" style="border-top: 3px solid #fbbf24; display: flex; flex-direction: column; justify-content: center; display: none;" id="card-cumulative-expense">
+                <div class="stat-header">📊 개인 지출 누계</div>
+                <div class="stat-value" id="stat-cumulative-expense">₩0</div>
+            </div>
+        </div>
+
+        <div class="glass-card animate-fade" style="margin-bottom: 2rem; border-top: 3px solid var(--success);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div class="stat-header">💰 총 저축 누계</div>
+                    <div class="stat-value" id="stat-accumulated-savings" style="color: var(--success); font-size: 1.8rem;">₩0</div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="stat-header" style="font-size: 0.8rem;">이번 달 총 여유 자금</div>
+                    <div class="stat-value" id="stat-remaining" style="font-size: 1.2rem;">₩0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-layout">
+            <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem;">
+                <div class="glass-card animate-fade">
+                    <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem;">📊 카테고리별 지출</h3>
+                    <div style="height: 300px;">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+                <div class="glass-card animate-fade">
+                    <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem;">🗓️ 고정비 일정</h3>
+                    <div id="fixed-timeline"></div>
+                </div>
+            </div>
+
+            <div class="glass-card forecast-card animate-fade" style="margin-top: 1rem;">
+                <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem;">💡 월말 지출 예측</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                    <!-- Common Forecast -->
+                    <div>
+                        <div style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.5rem;">🏠 공동 생활비 예측</div>
+                        <div class="stat-value forecast-value" id="projected-common" style="font-size: 1.2rem;">₩0</div>
+                        <div id="insight-common" style="font-size: 0.75rem; margin-top: 0.5rem; line-height: 1.4;"></div>
+                    </div>
+                    <!-- Jaeeon Forecast -->
+                    <div>
+                        <div style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.5rem;">👨‍💻 재언 개인 예측</div>
+                        <div class="stat-value forecast-value" id="projected-jaeeon" style="font-size: 1.2rem;">₩0</div>
+                        <div id="insight-jaeeon" style="font-size: 0.75rem; margin-top: 0.5rem; line-height: 1.4;"></div>
+                    </div>
+                    <!-- Mina Forecast -->
+                    <div>
+                        <div style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.5rem;">👩‍🎨 미나 개인 예측</div>
+                        <div class="stat-value forecast-value" id="projected-mina" style="font-size: 1.2rem;">₩0</div>
+                        <div id="insight-mina" style="font-size: 0.75rem; margin-top: 0.5rem; line-height: 1.4;"></div>
+                    </div>
+                </div>
+                <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-dim); display: flex; gap: 20px;">
+                    <span>오늘: <span id="today-date"></span></span>
+                    <span>월 진행률: <span id="month-progress"></span>%</span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Expenses Template -->
+    <template id="tpl-expenses">
+        <header class="animate-fade">
+            <div class="header-title">
+                <h1>내역 관리</h1>
+                <p>수입과 지출을 직접 기록하고 관리하세요.</p>
+            </div>
+        </header>
+
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+            <!-- Manual Entry Forms (Top Row) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <!-- Manual Expense Entry -->
+                <div class="glass-card animate-fade" style="height: fit-content;">
+                    <h3 style="margin-bottom: 1.2rem; font-size: 1rem;">➕ 수기 지출 입력</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
+                        <input type="date" id="manual-date">
+                        <input type="text" id="manual-merchant" placeholder="지출 내용">
+                        <input type="number" id="manual-amount" placeholder="₩ 금액">
+                        <select id="manual-category"></select>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 0.6rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                            <label style="color: var(--text-dim); font-size: 0.75rem;">지출 유형</label>
+                            <select id="manual-type">
+                                <option value="common">공동 지출</option>
+                                <option value="personal_jaeeon">재언 개인</option>
+                                <option value="personal_mina">미나 개인</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                            <label style="color: var(--text-dim); font-size: 0.75rem;">결제 수단</label>
+                            <select id="manual-payment-method"></select>
+                        </div>
+                    </div>
+                    <button class="btn" id="add-manual-expense" style="width: 100%; margin-top: 1rem;">지출 기록</button>
+                </div>
+
+                <!-- Manual Income Entry -->
+                <div class="glass-card animate-fade" style="height: fit-content; border-left: 4px solid var(--success);">
+                    <h3 style="margin-bottom: 1.2rem; font-size: 1rem;">➕ 추가 수입 입력</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
+                        <input type="date" id="income-date">
+                        <input type="text" id="income-source" placeholder="수입 내용 (예: 보너스)">
+                        <input type="number" id="income-amount" placeholder="₩ 금액">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 0.6rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                            <label style="color: var(--text-dim); font-size: 0.75rem;">수입 항목</label>
+                            <select id="income-category"></select>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                            <label style="color: var(--text-dim); font-size: 0.75rem;">수입 유형</label>
+                            <select id="income-type">
+                                <option value="personal_jaeeon">재언 개인 수입</option>
+                                <option value="personal_mina">미나 개인 수입</option>
+                                <option value="common">공동 수입 (공용)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn" id="add-manual-income" style="width: 100%; background: var(--success); margin-top: 1rem;">수입 기록</button>
+                </div>
+            </div>
+
+            <!-- Transaction List (Bottom Row) -->
+            <div id="transaction-list-container" class="animate-fade" style="display: block;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <h3>상세 내역</h3>
+                        <input type="month" id="expense-month-select" style="margin-bottom: 0; padding: 4px 8px; font-size: 0.85rem; width: 150px;">
+                    </div>
+                    <button class="btn btn-secondary" onclick="App.clearTransactions()" style="font-size: 0.75rem;">내역 초기화</button>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border);">
+                    <div id="tab-common-tx" style="cursor: pointer; padding: 0.5rem 1rem; font-weight: 600; color: var(--primary-accent); border-bottom: 2px solid var(--primary-accent); transition: all 0.3s;">공동 내역</div>
+                    <div id="tab-personal-tx" style="cursor: pointer; padding: 0.5rem 1rem; font-weight: 600; color: var(--text-dim); transition: all 0.3s;">개인 내역 🔒</div>
+                </div>
+
+                <div id="personal-tx-lock-msg" style="display: none; padding: 2rem; text-align: center;" class="glass-card">
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">개인 내역은 비밀번호 인증이 필요합니다.</p>
+                    <button class="btn" id="unlock-personal-tx">비밀번호 입력</button>
+                </div>
+
+                <div class="glass-card" style="padding: 0; overflow: hidden;" id="tx-table-card">
+                    <table id="transaction-table">
+                        <thead>
+                            <tr>
+                                <th style="padding: 1rem;">날짜</th>
+                                <th style="padding: 1rem;">내용</th>
+                                <th style="padding: 1rem;">금액</th>
+                                <th style="padding: 1rem;">결제수단</th>
+                                <th style="padding: 1rem;">구분 / 카테고리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transaction-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Settings Template -->
+    <template id="tpl-settings">
+        <header class="animate-fade">
+            <div class="header-title">
+                <h1>설정</h1>
+                <p>부부의 수입과 고정비를 관리합니다.</p>
+            </div>
+        </header>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div class="glass-card animate-fade">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" id="toggle-fixed-income-list">
+                        <h3 style="margin-bottom: 0;">💰 고정 수입</h3>
+                        <span id="fixed-income-list-chevron" style="transition: transform 0.3s; display: inline-block;">▼</span>
+                    </div>
+                    <button class="btn btn-secondary" id="process-all-fixed-income" style="font-size: 0.7rem; padding: 4px 8px; background: var(--success); color: white; border: none;">전체 수입처리</button>
+                </div>
+                <div id="fixed-incomes-list" style="margin-bottom: 1.5rem;"></div>
+                <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem; display: flex; flex-direction: column; gap: 0.6rem;">
+                    <input type="text" id="fixed-inc-name" placeholder="수입 항목명 (예: 급여)">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
+                        <input type="number" id="fixed-inc-amount" placeholder="금액">
+                        <select id="fixed-inc-type">
+                            <option value="common">공동</option>
+                            <option value="personal_jaeeon">재언 개인</option>
+                            <option value="personal_mina">미나 개인</option>
+                        </select>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
+                        <input type="number" id="fixed-inc-date" placeholder="입금일 (1-31)">
+                        <select id="fixed-inc-category"></select>
+                    </div>
+                    <button class="btn" id="add-fixed-income" style="width: 100%; background: var(--success); margin-top: 0.4rem;">고정 수입 추가</button>
+                </div>
+            </div>
+
+            <div class="glass-card animate-fade">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" id="toggle-fixed-list">
+                        <h3 style="margin-bottom: 0;">💸 고정비 관리</h3>
+                        <span id="fixed-list-chevron" style="transition: transform 0.3s; display: inline-block;">▼</span>
+                    </div>
+                    <button class="btn btn-secondary" id="process-all-fixed" style="font-size: 0.7rem; padding: 4px 8px;">전체 지출처리</button>
+                </div>
+                <div id="fixed-costs-list" style="margin-bottom: 1.5rem;"></div>
+                <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem; display: flex; flex-direction: column; gap: 0.6rem;">
+                    <input type="text" id="fixed-name" placeholder="항목명">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
+                        <input type="number" id="fixed-amount" placeholder="금액">
+                        <select id="fixed-type">
+                            <option value="common">공동</option>
+                            <option value="personal_jaeeon">재언 개인</option>
+                            <option value="personal_mina">미나 개인</option>
+                        </select>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
+                        <input type="number" id="fixed-date" placeholder="출금일 (1-31)">
+                        <select id="fixed-source"></select>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
+                        <select id="fixed-category"></select>
+                        <button class="btn btn-secondary" id="add-fixed" style="margin-top: 0;">고정비 추가</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card animate-fade" style="grid-column: span 2;">
+                <h3 style="margin-bottom: 1.5rem;">💳 결제 수단 관리 (통장/카드)</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <h4 style="font-size: 0.9rem; margin-bottom: 1rem;">통장 (계좌)</h4>
+                        <div id="accounts-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;"></div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="new-account" placeholder="새 통장 이름" style="margin-bottom: 0;">
+                            <button class="btn btn-secondary" id="add-account">추가</button>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.9rem; margin-bottom: 1rem;">카드</h4>
+                        <div id="cards-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;"></div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="new-card" placeholder="새 카드 이름" style="margin-bottom: 0;">
+                            <button class="btn btn-secondary" id="add-card">추가</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card animate-fade" style="grid-column: span 2;">
+                <h3 style="margin-bottom: 1.5rem;">🏷️ 항목(카테고리) 관리</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <h4 style="font-size: 0.9rem; margin-bottom: 1rem;">지출 항목</h4>
+                        <div id="expense-categories-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;"></div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="new-expense-category" placeholder="새 지출 항목" style="margin-bottom: 0;">
+                            <button class="btn btn-secondary" id="add-expense-category">추가</button>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.9rem; margin-bottom: 1rem;">수입 항목</h4>
+                        <div id="income-categories-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;"></div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="new-income-category" placeholder="새 수입 항목" style="margin-bottom: 0;">
+                            <button class="btn btn-secondary" id="add-income-category">추가</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-card animate-fade" style="grid-column: span 2;">
+                <h3 style="margin-bottom: 1.5rem;">🔒 보안 설정</h3>
+                <div style="max-width: 400px;">
+                    <label style="font-size: 0.8rem; color: var(--text-dim);">미나 대시보드 비밀번호 변경</label>
+                    <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 0.5rem;">
+                        <input type="password" id="current-mina-pass" placeholder="현재 비밀번호" style="margin-bottom: 0;">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="password" id="new-mina-pass" placeholder="새 비밀번호" style="margin-bottom: 0; flex: 1;">
+                            <button class="btn btn-secondary" id="save-mina-pass">변경</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Password Prompt Template -->
+    <template id="tpl-password-prompt">
+        <div style="height: 80vh; display: flex; align-items: center; justify-content: center;">
+            <div class="glass-card animate-fade" style="width: 100%; max-width: 400px; text-align: center; padding: 3rem 2rem;">
+                <div style="font-size: 3rem; margin-bottom: 1.5rem;">🔐</div>
+                <h2 style="margin-bottom: 0.5rem;">미나의 비밀 공간</h2>
+                <p style="color: var(--text-dim); margin-bottom: 2rem; font-size: 0.9rem;">이 페이지를 보려면 비밀번호를 입력하세요.</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <input type="password" id="mina-pass-input" placeholder="비밀번호" style="text-align: center; font-size: 1.2rem; letter-spacing: 0.5rem; padding: 1rem;">
+                    <button class="btn" id="mina-pass-submit" style="width: 100%; padding: 1rem;">확인</button>
+                    <div id="pass-error" style="color: var(--danger); font-size: 0.85rem; margin-top: 0.5rem; display: none;">비밀번호가 일치하지 않습니다.</div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
