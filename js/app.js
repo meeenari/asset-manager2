@@ -469,6 +469,8 @@ const App = {
             .reduce((sum, t) => sum + t.amount, 0);
         const totalIncomeForMonth = totalFixedIncomeBase + extraIncomeReceived;
 
+        const livingExp = totalActualExp - paidFixedExp;
+
         // 5. Projected Month-end Balance
         const lastDayInMonth = new Date(year, month, 0).getDate();
         const daysElapsedInMonth = (new Date().getFullYear() === year && new Date().getMonth() === month - 1) ? new Date().getDate() : lastDayInMonth;
@@ -511,7 +513,6 @@ const App = {
         setVal('stat-balance-value', projectedBalance, projectedBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)');
         
         safeSetText('stat-living-exp-label', `${labelPrefix}생활비사용액`);
-        const livingExp = totalActualExp - paidFixedExp;
         setVal('stat-living-exp-value', livingExp);
 
         // Date labels
