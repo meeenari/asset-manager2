@@ -486,15 +486,9 @@ const App = {
 
         const livingExp = (totalActualExp || 0) - (paidFixedExp || 0);
 
-        // 5. Projected Month-end Balance
-        const lastDayInMonth = new Date(year, month, 0).getDate() || 30;
-        const daysElapsedInMonth = (new Date().getFullYear() === year && new Date().getMonth() === month - 1) ? new Date().getDate() : lastDayInMonth;
-        const safeDaysElapsed = daysElapsedInMonth || 1;
-        const dailyLivingExpAvg = livingExp / safeDaysElapsed;
-        const projectedLivingExpTotal = Math.round(dailyLivingExpAvg * lastDayInMonth);
-        
-        // Month-end Projection = Total Income - Prev Month Card Bill - Projected Living Exp - Scheduled Account Fixed Expenses
-        const projectedBalance = (totalIncomeForMonth || 0) - ((shiftedCardExp || 0) + (projectedLivingExpTotal || 0) + (totalFixedExpenseAccountOnly || 0));
+        // 5. Projected Month-end Balance (User formula: Income - Prev Card Bill - Actual Cash Exp - Remaining Account Fixed)
+        const remainingFixedAccountExp = (totalFixedExpenseAccountOnly || 0) - (paidFixedCashExp || 0);
+        const projectedBalance = (totalIncomeForMonth || 0) - (shiftedCardExp || 0) - (actualCashExp || 0) - remainingFixedAccountExp;
 
         // 6. Update DOM
         const setVal = (id, val, color) => {
