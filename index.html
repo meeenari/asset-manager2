@@ -59,48 +59,48 @@
             </div>
         </header>
 
-        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
-            <!-- Row 1: Expenditure Totals -->
+        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 1rem;">
+            <!-- Row 1: Expenditure Totals (4 cards, each spanning 3 cols) -->
             <!-- Card 1: 당월지출누계 -->
-            <div class="glass-card animate-fade" style="border-top: 3px solid #f43f5e;">
+            <div class="glass-card animate-fade" style="grid-column: span 3; border-top: 3px solid #f43f5e;">
                 <div class="stat-header" id="stat-total-exp-label">당월지출누계</div>
                 <div class="stat-value" id="stat-total-exp-value">₩0</div>
                 <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);" id="stat-total-exp-sub">카드 + 현금 (저축제외)</div>
             </div>
             <!-- Card 2: 당월카드지출누계 -->
-            <div class="glass-card animate-fade" style="border-top: 3px solid #8b5cf6;">
+            <div class="glass-card animate-fade" style="grid-column: span 3; border-top: 3px solid #8b5cf6;">
                 <div class="stat-header" id="stat-card-exp-label">당월카드지출누계</div>
                 <div class="stat-value" id="stat-card-exp-value">₩0</div>
                 <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">이번 달 실제 카드 사용 합계</div>
             </div>
             <!-- Card 3: 당월현금지출누계 -->
-            <div class="glass-card animate-fade" style="border-top: 3px solid #fbbf24;">
+            <div class="glass-card animate-fade" style="grid-column: span 3; border-top: 3px solid #fbbf24;">
                 <div class="stat-header" id="stat-cash-exp-label">당월현금지출누계</div>
                 <div class="stat-value" id="stat-cash-exp-value">₩0</div>
                 <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">통장 지출 포함</div>
             </div>
             <!-- Card 4: 전월카드지출누계 -->
-            <div class="glass-card animate-fade" style="border-top: 3px solid #94a3b8;">
+            <div class="glass-card animate-fade" style="grid-column: span 3; border-top: 3px solid #94a3b8;">
                 <div class="stat-header" id="stat-prev-card-exp-label">전월카드지출누계</div>
                 <div class="stat-value" id="stat-prev-card-exp-value">₩0</div>
                 <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">이번 달 결제될 카드 대금</div>
             </div>
 
-            <!-- Row 2: Balance & Variable Spending -->
+            <!-- Row 2: Balance & Variable Spending (3 cards, each spanning 4 cols) -->
             <!-- Card 5: 현재잔액 -->
-            <div class="glass-card animate-fade" style="border-top: 3px solid var(--primary-accent);">
+            <div class="glass-card animate-fade" style="grid-column: span 4; border-top: 3px solid var(--primary-accent);">
                 <div class="stat-header" id="stat-balance-label">현재잔액</div>
                 <div class="stat-value" id="stat-balance-value">₩0</div>
                 <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">총수입 - (전월카드 + 변동현금 + 총고정비)</div>
             </div>
             <!-- Card 6: 생활비사용액 -->
-            <div class="glass-card animate-fade" style="border-top: 3px solid #10b981;">
+            <div class="glass-card animate-fade" style="grid-column: span 4; border-top: 3px solid #10b981;">
                 <div class="stat-header" id="stat-living-exp-label">생활비사용액</div>
                 <div class="stat-value" id="stat-living-exp-value">₩0</div>
                 <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">고정비 제외 순수 변동 지출</div>
             </div>
             <!-- Card 7: 개인지출합계 -->
-            <div class="glass-card animate-fade" style="border-top: 3px solid #6366f1;" id="card-personal-sum">
+            <div class="glass-card animate-fade" style="grid-column: span 4; border-top: 3px solid #6366f1;" id="card-personal-sum">
                 <div class="stat-header" id="stat-personal-sum-label">개인지출합계</div>
                 <div class="stat-value" id="stat-personal-sum-value">₩0</div>
                 <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">개인 항목 합계 (저축 제외)</div>

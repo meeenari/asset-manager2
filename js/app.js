@@ -829,6 +829,8 @@ const App = {
     renderTransactionTable() {
         const container = document.getElementById('transaction-list-container');
         const tbody = document.getElementById('transaction-table-body');
+        if (!container || !tbody) return; // Not on expenses page
+        
         container.style.display = 'block';
         tbody.innerHTML = '';
 
@@ -910,9 +912,12 @@ const App = {
             }
             this.state.transactions[idx][field] = finalValue;
             this.saveData();
-            // Re-render table to format amount if needed
-            if (field === 'amount') this.renderTransactionTable();
-            if (this.state.currentPage === 'dashboard') this.initDashboard();
+            
+            // Refresh currently visible view
+            if (this.state.currentPage === 'expenses') this.renderTransactionTable();
+            else if (this.state.currentPage === 'pm-summary') this.initPmSummary();
+            else if (this.state.currentPage === 'dashboard') this.initDashboard('common');
+            else if (this.state.currentPage === 'dashboard-mina') this.initDashboard('mina');
         }
     },
 
@@ -947,8 +952,12 @@ const App = {
         if (confirm('이 내역을 삭제하시겠습니까?')) {
             this.state.transactions = this.state.transactions.filter(t => t.id !== id);
             this.saveData();
-            this.renderTransactionTable();
-            if (this.state.currentPage === 'dashboard') this.initDashboard();
+            
+            // Refresh currently visible view
+            if (this.state.currentPage === 'expenses') this.renderTransactionTable();
+            else if (this.state.currentPage === 'pm-summary') this.initPmSummary();
+            else if (this.state.currentPage === 'dashboard') this.initDashboard('common');
+            else if (this.state.currentPage === 'dashboard-mina') this.initDashboard('mina');
         }
     },
 
