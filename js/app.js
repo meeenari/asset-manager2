@@ -442,23 +442,28 @@ const App = {
 
         const labelPrefix = mode === 'common' ? '' : '미나 ';
 
-        document.getElementById('stat-total-exp-label').textContent = `${labelPrefix}당월지출누계`;
+        const safeSetText = (id, text) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text;
+        };
+
+        safeSetText('stat-total-exp-label', `${labelPrefix}당월지출누계`);
         setVal('stat-total-exp-value', totalActualExp);
 
-        document.getElementById('stat-card-exp-label').textContent = `${labelPrefix}당월카드지출누계`;
+        safeSetText('stat-card-exp-label', `${labelPrefix}당월카드지출누계`);
         setVal('stat-card-exp-value', actualCardExp);
 
-        document.getElementById('stat-cash-exp-label').textContent = `${labelPrefix}당월현금지출누계`;
+        safeSetText('stat-cash-exp-label', `${labelPrefix}당월현금지출누계`);
         setVal('stat-cash-exp-value', actualCashExp);
 
-        document.getElementById('stat-prev-card-exp-label').textContent = `${labelPrefix}전월카드지출누계`;
+        safeSetText('stat-prev-card-exp-label', `${labelPrefix}전월카드지출누계`);
         setVal('stat-prev-card-exp-value', shiftedCardExp);
 
-        document.getElementById('stat-balance-label').textContent = `${labelPrefix}현재잔액`;
+        safeSetText('stat-balance-label', `${labelPrefix}현재잔액`);
         setVal('stat-balance-value', currentBalance, currentBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)');
         
-        document.getElementById('stat-living-exp-label').textContent = `${labelPrefix}생활비사용액`;
-        const livingExp = totalActualExp - shiftedCardExp; // New Formula: Total Exp - Prev Card Exp
+        safeSetText('stat-living-exp-label', `${labelPrefix}생활비사용액`);
+        const livingExp = totalActualExp - shiftedCardExp;
         setVal('stat-living-exp-value', livingExp);
 
         // footer stats
@@ -494,8 +499,8 @@ const App = {
             .filter(t => t.type === 'income' && !t.isAutoIncome && !t.fixedIncomeName)
             .reduce((sum, item) => sum + item.amount, 0);
 
-        const totalFixedExp = relevantFixedCosts.reduce((sum, item) => sum + parseInt(item.amount), 0);
-        const totalFixedInc = relevantFixedIncomes.reduce((sum, item) => sum + parseInt(item.amount), 0);
+        const totalFixedExp = relevantFixedCosts.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+        const totalFixedInc = relevantFixedIncomes.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
 
         this.updateForecast(mode, {
             variableExp,
@@ -514,21 +519,26 @@ const App = {
         const lastDay = new Date(targetYear, targetMonth + 1, 0).getDate();
         const daysElapsed = isCurrentMonth ? now.getDate() : lastDay;
         
-        document.getElementById('today-date').textContent = isCurrentMonth ? `${targetYear}년 ${targetMonth + 1}월 ${daysElapsed}일` : `${targetYear}년 ${targetMonth + 1}월 (마감됨)`;
-        document.getElementById('month-progress').textContent = Math.round((daysElapsed / lastDay) * 100);
+        const todayDateEl = document.getElementById('today-date');
+        if (todayDateEl) todayDateEl.textContent = isCurrentMonth ? `${targetYear}년 ${targetMonth + 1}월 ${daysElapsed}일` : `${targetYear}년 ${targetMonth + 1}월 (마감됨)`;
+        
+        const monthProgressEl = document.getElementById('month-progress');
+        if (monthProgressEl) monthProgressEl.textContent = Math.round((daysElapsed / lastDay) * 100);
 
         const forecastContainer = document.querySelector('.forecast-card > div');
         const title = mode === 'common' ? '🏠 공동 생활비 예측' : '👩‍🎨 미나 개인 예측';
         const projectedId = mode === 'common' ? 'projected-common' : 'projected-mina';
         const insightId = mode === 'common' ? 'insight-common' : 'insight-mina';
 
-        forecastContainer.innerHTML = `
-            <div style="grid-column: span 3;">
-                <div style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.5rem;">${title}</div>
-                <div class="stat-value forecast-value" id="${projectedId}" style="font-size: 1.5rem;">₩0</div>
-                <div id="${insightId}" style="font-size: 0.85rem; margin-top: 0.5rem; line-height: 1.4;"></div>
-            </div>
-        `;
+        if (forecastContainer) {
+            forecastContainer.innerHTML = `
+                <div style="grid-column: span 3;">
+                    <div style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.5rem;">${title}</div>
+                    <div class="stat-value forecast-value" id="${projectedId}" style="font-size: 1.5rem;">₩0</div>
+                    <div id="${insightId}" style="font-size: 0.85rem; margin-top: 0.5rem; line-height: 1.4;"></div>
+                </div>
+            `;
+        }
 
         this.processPotForecast(mode, data, daysElapsed, lastDay, isCurrentMonth);
     },
@@ -612,7 +622,9 @@ const App = {
     },
 
     renderChart(transactions) {
-        const ctx = document.getElementById('mainChart').getContext('2d');
+        const canvas = document.getElementById('mainChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
         const categoryMap = {};
         
         transactions
