@@ -549,8 +549,8 @@ const App = {
             .reduce((sum, t) => sum + t.amount, 0);
         const totalIncomeForMonth = totalFixedIncomeBase + extraIncomeReceived;
 
-        // 생활비 잔액 = (실제 카드 지출 + 실제 현금 지출 - 고정 지출 합계)
-        const livingExp = (actualCardExp || 0) + (actualCashExp || 0) - (paidFixedExpTotal || 0);
+        // 생활비 사용액 = 실제 총 지출 - 비상금 지출 - 고정비 지출
+        const livingExp = (totalActualExp || 0) - (actualEmergencyExp || 0) - (paidFixedExpTotal || 0);
 
         // 5. Projected Month-end Balance
         const remainingFixedAccount = Math.max(0, (totalFixedExpenseAccountOnly || 0) - (paidFixedAccountTotal || 0));
@@ -579,7 +579,7 @@ const App = {
             if (el) el.textContent = text;
         };
 
-        safeSetText('stat-total-exp-label', `${labelPrefix}실제 총 지출`);
+        safeSetText('stat-total-exp-label', `${labelPrefix}이번달 지출 누계`);
         setVal('stat-total-exp-value', totalActualExp);
 
         safeSetText('stat-card-exp-label', `${labelPrefix}실제 카드 지출`);
@@ -598,7 +598,7 @@ const App = {
         safeSetText('stat-emergency-exp-label', `비상금 지출`);
         setVal('stat-emergency-exp-value', actualEmergencyExp);
 
-        safeSetText('stat-living-exp-label', `${labelPrefix}생활비 잔액`);
+        safeSetText('stat-living-exp-label', `${labelPrefix}생활비 얼마나 썻을까?`);
         setVal('stat-living-exp-value', livingExp);
 
         // Render Key Schedules
