@@ -488,8 +488,7 @@ const App = {
         
         const livingBalanceEl = document.getElementById('stat-living-balance');
         if (livingBalanceEl) {
-             const variableExpenses = totalActualExp - totalFixedExpense;
-             const livingBalance = (totalFixedIncomeBase - totalFixedExpense) - variableExpenses;
+             const livingBalance = totalIncomeForMonth - totalActualExp;
              livingBalanceEl.textContent = `₩${livingBalance.toLocaleString()}`;
              livingBalanceEl.style.color = livingBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)';
         }
@@ -1527,13 +1526,18 @@ const App = {
 
             filtered.sort((a, b) => b.date.localeCompare(a.date)).forEach(t => {
                 const pmLabel = t.paymentMethod ? `${t.paymentMethod.type === 'account' ? '🏦' : '💳'} ${t.paymentMethod.name}` : '-';
+                
+                // For Emergency Fund view, treat category '비상금' (deposits) as positive
+                const isDepositInView = name === '비상금통장' && t.category === '비상금';
+                const isPositive = t.type === 'income' || isDepositInView;
+                
                 tableHtml += `
                     <tr style="border-top: 1px solid var(--glass-border);">
                         <td style="padding: 1rem; font-size: 0.9rem; color: var(--text-dim);">${t.date}</td>
                         <td style="padding: 1rem; font-weight: 500;">${t.merchant}</td>
                         <td style="padding: 1rem; font-size: 0.85rem;">${pmLabel}</td>
-                        <td style="padding: 1rem; text-align: right; font-weight: 600; color: ${t.type === 'income' ? 'var(--success)' : 'inherit'}">
-                            ${t.type === 'income' ? '+' : ''}₩${t.amount.toLocaleString()}
+                        <td style="padding: 1rem; text-align: right; font-weight: 600; color: ${isPositive ? 'var(--success)' : 'inherit'}">
+                            ${isPositive ? '+' : ''}₩${t.amount.toLocaleString()}
                         </td>
                         <td style="padding: 1rem; text-align: center;">
                             <button onclick="App.deleteTransaction(${t.id}); App.initPmSummary();" style="background: none; border: none; color: var(--danger); cursor: pointer; opacity: 0.6; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">✕</button>
