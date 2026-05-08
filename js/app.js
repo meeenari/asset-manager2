@@ -30,18 +30,34 @@ const App = {
     },
 
     init() {
-        this.initFirebase();
-        this.loadData();
-        this.state.currentPage = 'dashboard';
-        this.state.isMinaUnlocked = false;
-        this.checkAutomaticTransactions();
-        this.bindEvents();
-        this.render();
+        console.log("App initializing...");
+        try {
+            this.initFirebase();
+            this.loadData();
+            this.state.currentPage = this.state.currentPage || 'dashboard';
+            this.state.isMinaUnlocked = false;
+            
+            if (typeof this.checkAutomaticTransactions === 'function') {
+                this.checkAutomaticTransactions();
+            }
+            
+            this.bindEvents();
+            this.render();
+            console.log("App initialized successfully.");
+        } catch (error) {
+            console.error("App Initialization Critical Error:", error);
+            alert("앱 초기화 중 오류가 발생했습니다: " + error.message);
+        }
     },
 
     initFirebase() {
-        if (FIREBASE_CONFIG.apiKey === "YOUR_API_KEY") {
-            console.warn("Firebase config is not set. Running in local mode.");
+        if (typeof firebase === 'undefined') {
+            console.warn("Firebase library not loaded. Running in offline mode.");
+            return;
+        }
+
+        if (FIREBASE_CONFIG.apiKey === "YOUR_API_KEY" || !FIREBASE_CONFIG.apiKey) {
+            console.warn("Firebase config is incomplete. Running in local mode.");
             return;
         }
         
@@ -116,6 +132,12 @@ const App = {
             }
             
             this.state = { ...this.state, ...data };
+            
+            // Validation: Ensure essential arrays exist
+            if (!Array.isArray(this.state.transactions)) this.state.transactions = [];
+            if (!Array.isArray(this.state.fixedCosts)) this.state.fixedCosts = [];
+            if (!Array.isArray(this.state.fixedIncomes)) this.state.fixedIncomes = [];
+            if (!this.state.selectedMonth) this.state.selectedMonth = new Date().toISOString().slice(0, 7);
         }
     },
 
@@ -289,7 +311,8 @@ const App = {
             this.initDashboard(mode);
         };
 
-        const [year, month] = this.state.selectedMonth.split('-').map(Number);
+        const selectedMonth = this.state.selectedMonth || new Date().toISOString().slice(0, 7);
+        const [year, month] = selectedMonth.split('-').map(Number);
         
         // Filter transactions for the selected month and mode
         const filteredTransactions = this.state.transactions.filter(t => {
