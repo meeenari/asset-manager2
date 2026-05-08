@@ -12,12 +12,12 @@ const App = {
     db: null,
     isFirstSync: true,
     state: {
-        income: { husband: 0, wife: 0, husbandCat: '급여', wifeCat: '급여' },
+        income: { husband: 0, wife: 0, husbandCat: '湲됱뿬', wifeCat: '湲됱뿬' },
         fixedCosts: [],
         transactions: [],
-        categories: ['?��?', '?�류�?, '카페/간식', '마트/?�필??, '?�료/건강', '교통�?, '?�핑', '구독�?, '차량?�선�?, '?��?, '기�?'],
-        incomeCategories: ['급여', '보너??, '부?�입', '금융?�익', '중고거래', '기�?'],
-        paymentMethods: { accounts: ['?�금'], cards: [] },
+        categories: ['?앸?', '?좊쪟鍮?, '移댄럹/媛꾩떇', '留덊듃/?앺븘??, '?섎즺/嫄닿컯', '援먰넻鍮?, '?쇳븨', '援щ룆猷?, '李⑤웾?섏꽑鍮?, '?異?, '湲고?'],
+        incomeCategories: ['湲됱뿬', '蹂대꼫??, '遺?섏엯', '湲덉쑖?섏씡', '以묎퀬嫄곕옒', '湲고?'],
+        paymentMethods: { accounts: ['?꾧툑'], cards: [] },
         lastFixedCheck: '', // YYYY-MM-DD
         selectedMonth: new Date().toISOString().slice(0, 7), // YYYY-MM
         currentPage: 'dashboard',
@@ -52,7 +52,7 @@ const App = {
             console.log("App initialized successfully.");
         } catch (error) {
             console.error("App Initialization Critical Error:", error);
-            alert("??초기??�??�류가 발생?�습?�다: " + error.message);
+            alert("??珥덇린??以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎: " + error.message);
         }
     },
 
@@ -79,7 +79,7 @@ const App = {
                 const dot = document.getElementById('sync-dot');
                 const text = document.getElementById('sync-text');
                 if (dot) dot.style.background = '#10b981';
-                if (text) text.textContent = '?�라?�드 ?�기??�?;
+                if (text) text.textContent = '?대씪?곕뱶 ?숆린??以?;
 
                 if (data) {
                     // Update state but keep some local-only properties if needed
@@ -131,19 +131,19 @@ const App = {
                 data.fixedIncomes = [];
                 if (data.income.husband > 0) {
                     data.fixedIncomes.push({
-                        name: '?�언 고정?�입',
+                        name: '?ъ뼵 怨좎젙?섏엯',
                         amount: data.income.husband,
                         date: 1,
-                        category: data.income.husbandCat || '급여',
+                        category: data.income.husbandCat || '湲됱뿬',
                         incomeType: 'personal_jaeeon'
                     });
                 }
                 if (data.income.wife > 0) {
                     data.fixedIncomes.push({
-                        name: '미나 고정?�입',
+                        name: '誘몃굹 怨좎젙?섏엯',
                         amount: data.income.wife,
                         date: 1,
-                        category: data.income.wifeCat || '급여',
+                        category: data.income.wifeCat || '湲됱뿬',
                         incomeType: 'personal_mina'
                     });
                 }
@@ -201,9 +201,9 @@ const App = {
                         type: 'income',
                         incomeType: item.incomeType || 'common',
                         date: transactionDate,
-                        merchant: `[?�동] ${item.name}`,
+                        merchant: `[?먮룞] ${item.name}`,
                         amount: parseInt(item.amount),
-                        category: item.category || '급여',
+                        category: item.category || '湲됱뿬',
                         isAutoIncome: true,
                         fixedIncomeName: item.name
                     });
@@ -226,12 +226,12 @@ const App = {
                         type: 'expense',
                         spendingType: item.spendingType || 'common',
                         date: transactionDate,
-                        merchant: `[?�동] ${item.name}`,
+                        merchant: `[?먮룞] ${item.name}`,
                         amount: parseInt(item.amount),
-                        category: item.category || '기�?',
+                        category: item.category || '湲고?',
                         paymentMethod: { 
                             type: this.state.paymentMethods.cards.includes(item.source) ? 'card' : 'account', 
-                            name: item.source || '?�동?�체' 
+                            name: item.source || '?먮룞?댁껜' 
                         },
                         isAutoFixed: true,
                         fixedCostName: item.name
@@ -258,12 +258,21 @@ const App = {
     },
 
     render() {
+        const main = document.getElementById('main-content');
+        const aside = document.querySelector('aside');
+        const container = document.querySelector('.app-container');
+
         if (!this.state.isAppUnlocked) {
+            if (aside) aside.style.display = 'none';
+            if (container) container.style.gridTemplateColumns = '1fr';
+            if (main) main.style.maxWidth = '100%';
             this.showLogin();
             return;
         }
 
-        const main = document.getElementById('main-content');
+        if (aside) aside.style.display = 'flex';
+        if (container) container.style.gridTemplateColumns = '240px 1fr';
+        if (main) main.style.maxWidth = '1100px';
 
         // Update sidebar active state
         document.querySelectorAll('nav li').forEach(li => {
@@ -370,8 +379,8 @@ const App = {
         // Update header based on mode
         const headerH1 = document.querySelector('.header-title h1');
         const headerP = document.querySelector('.header-title p');
-        if (headerH1) headerH1.textContent = mode === 'common' ? '?�� 공동 ?�?�보?? : '?��?��?미나 개인 ?�?�보??;
-        if (headerP) headerP.textContent = mode === 'common' ? '?�리 공동???�산 ?�름???�인?�세??' : '미나?�만??비�? ?�산 ?�역?�니??';
+        if (headerH1) headerH1.textContent = mode === 'common' ? '?룧 怨듬룞 ??쒕낫?? : '?뫆?랅윃?誘몃굹 媛쒖씤 ??쒕낫??;
+        if (headerP) headerP.textContent = mode === 'common' ? '?곕━ 怨듬룞???먯궛 ?먮쫫???뺤씤?섏꽭??' : '誘몃굹?섎쭔??鍮꾨? ?먯궛 ?댁뿭?낅땲??';
 
         const monthSelect = document.getElementById('dashboard-month-select');
         monthSelect.value = this.state.selectedMonth;
@@ -430,7 +439,7 @@ const App = {
             .filter(t => t.type === 'income')
             .reduce((sum, item) => sum + item.amount, 0);
         
-        // Combined income doesn't count [?�동] or [고정] because those are already in transactions
+        // Combined income doesn't count [?먮룞] or [怨좎젙] because those are already in transactions
         // Wait, the original code had combinedTotalIncome = totalIncome + extraIncomeTotal
         // But in the new system, fixed incomes are automatically added to transactions.
         // So combinedTotalIncome should just be the sum of all 'income' transactions in the filtered set.
@@ -454,7 +463,7 @@ const App = {
         const commonInc = getSum(filteredTransactions, 'income', 'incomeType', 'common');
         const commonExp = getSum(filteredTransactions, 'expense', 'spendingType', 'common');
         const commonExpPure = filteredTransactions
-            .filter(t => t.type === 'expense' && t.spendingType === 'common' && t.category !== '?��?)
+            .filter(t => t.type === 'expense' && t.spendingType === 'common' && t.category !== '?異?)
             .reduce((sum, item) => sum + item.amount, 0);
         const commonRem = commonInc - commonExp;
 
@@ -467,14 +476,14 @@ const App = {
         const minaInc = getSum(filteredTransactions, 'income', 'incomeType', 'personal_mina');
         const minaExp = getSum(filteredTransactions, 'expense', 'spendingType', 'personal_mina');
         const minaExpPure = filteredTransactions
-            .filter(t => t.type === 'expense' && t.spendingType === 'personal_mina' && t.category !== '?��?)
+            .filter(t => t.type === 'expense' && t.spendingType === 'personal_mina' && t.category !== '?異?)
             .reduce((sum, item) => sum + item.amount, 0);
         const minaRem = minaInc - minaExp;
 
         // Cumulative Savings (Filtered by mode)
         const accumulatedSavings = this.state.transactions
             .filter(t => {
-                const isSavings = t.type === 'expense' && t.category === '?��?;
+                const isSavings = t.type === 'expense' && t.category === '?異?;
                 if (!isSavings) return false;
                 if (mode === 'common') return t.spendingType === 'common';
                 return t.spendingType === 'personal_mina';
@@ -496,21 +505,21 @@ const App = {
         });
 
         // Split into Emergency and Normal for clear accounting
-        const emergencyTxs = actualMonthTxs.filter(t => t.paymentMethod?.name === '비상금통??);
-        const normalTxs = actualMonthTxs.filter(t => t.paymentMethod?.name !== '비상금통??);
+        const emergencyTxs = actualMonthTxs.filter(t => t.paymentMethod?.name === '鍮꾩긽湲덊넻??);
+        const normalTxs = actualMonthTxs.filter(t => t.paymentMethod?.name !== '鍮꾩긽湲덊넻??);
 
-        // ?�월 ?�제 비상�?지�?(?��??�외)
+        // ?뱀썡 ?ㅼ젣 鍮꾩긽湲?吏異?(?異??쒖쇅)
         const actualEmergencyExp = emergencyTxs
-            .filter(t => t.type === 'expense' && t.category !== '?��?)
+            .filter(t => t.type === 'expense' && t.category !== '?異?)
             .reduce((sum, t) => sum + t.amount, 0);
 
-        // ?�월 ?�제 카드/?�금 지�?(?��??�외, 비상�??�외)
+        // ?뱀썡 ?ㅼ젣 移대뱶/?꾧툑 吏異?(?異??쒖쇅, 鍮꾩긽湲??쒖쇅)
         const actualCardExp = normalTxs
-            .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'card' && t.category !== '?��?)
+            .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'card' && t.category !== '?異?)
             .reduce((sum, t) => sum + t.amount, 0);
         
         const actualCashExp = normalTxs
-            .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'account' && t.category !== '?��?)
+            .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'account' && t.category !== '?異?)
             .reduce((sum, t) => sum + t.amount, 0);
             
         // Total Actual Spending (including Emergency)
@@ -518,20 +527,20 @@ const App = {
 
         // 2. Paid Fixed Expenses in current month
         const paidFixedExpTotal = actualMonthTxs
-            .filter(t => t.isAutoFixed && t.type === 'expense' && t.category !== '?��?)
+            .filter(t => t.isAutoFixed && t.type === 'expense' && t.category !== '?異?)
             .reduce((sum, t) => sum + t.amount, 0);
         
         const paidFixedAccountTotal = actualMonthTxs
-            .filter(t => t.isAutoFixed && t.type === 'expense' && t.paymentMethod?.type === 'account' && t.category !== '?��?)
+            .filter(t => t.isAutoFixed && t.type === 'expense' && t.paymentMethod?.type === 'account' && t.category !== '?異?)
             .reduce((sum, t) => sum + t.amount, 0);
 
         const actualTotalCashSpent = actualMonthTxs
-            .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'account' && t.category !== '?��?)
+            .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'account' && t.category !== '?異?)
             .reduce((sum, t) => sum + t.amount, 0);
 
         // 3. Shifted transactions (Card from prev month)
         const shiftedCardExp = filteredTransactions
-            .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'card' && t.category !== '?��?)
+            .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'card' && t.category !== '?異?)
             .reduce((sum, t) => sum + t.amount, 0);
         
         // 4. Total Monthly Income (Fixed + Extra)
@@ -540,11 +549,11 @@ const App = {
             .reduce((sum, t) => sum + t.amount, 0);
         const totalIncomeForMonth = totalFixedIncomeBase + extraIncomeReceived;
 
-        // ?�활비사?�액 = (?�월 카드 + ?�월 ?�금(비상금제??) - 고정비총??
+        // ?앺솢鍮꾩궗?⑹븸 = (?뱀썡 移대뱶 + ?뱀썡 ?꾧툑(鍮꾩긽湲덉젣??) - 怨좎젙鍮꾩킑??
         const livingExp = (actualCardExp || 0) + (actualCashExp || 0) - (paidFixedExpTotal || 0);
 
         // 5. Projected Month-end Balance
-        // 공식: ?�입 - ?�월카드 - ?�월?�금지�?비상금제?? - ?��? ?�정 고정�??�장�?
+        // 怨듭떇: ?섏엯 - ?꾩썡移대뱶 - ?뱀썡?꾧툑吏異?鍮꾩긽湲덉젣?? - ?⑥? ?덉젙 怨좎젙鍮??듭옣留?
         const remainingFixedAccount = Math.max(0, (totalFixedExpenseAccountOnly || 0) - (paidFixedAccountTotal || 0));
         const projectedBalance = (totalIncomeForMonth || 0) - (shiftedCardExp || 0) - (actualCashExp || 0) - remainingFixedAccount;
 
@@ -564,33 +573,33 @@ const App = {
             }
         };
 
-        const labelPrefix = mode === 'common' ? '' : '미나 ';
+        const labelPrefix = mode === 'common' ? '' : '誘몃굹 ';
 
         const safeSetText = (id, text) => {
             const el = document.getElementById(id);
             if (el) el.textContent = text;
         };
 
-        safeSetText('stat-total-exp-label', `${labelPrefix}?�월지출누�?);
+        safeSetText('stat-total-exp-label', `${labelPrefix}?뱀썡吏異쒕늻怨?);
         setVal('stat-total-exp-value', totalActualExp);
 
-        safeSetText('stat-card-exp-label', `${labelPrefix}?�월카드지출누�?);
+        safeSetText('stat-card-exp-label', `${labelPrefix}?뱀썡移대뱶吏異쒕늻怨?);
         setVal('stat-card-exp-value', actualCardExp);
 
-        safeSetText('stat-cash-exp-label', `${labelPrefix}?�월?�금지출누�?);
+        safeSetText('stat-cash-exp-label', `${labelPrefix}?뱀썡?꾧툑吏異쒕늻怨?);
         setVal('stat-cash-exp-value', actualCashExp);
 
-        safeSetText('stat-prev-card-exp-label', `${labelPrefix}?�월카드지출누�?);
+        safeSetText('stat-prev-card-exp-label', `${labelPrefix}?꾩썡移대뱶吏異쒕늻怨?);
         setVal('stat-prev-card-exp-value', shiftedCardExp);
 
-        safeSetText('stat-balance-label', `?�말?�상?�액`);
-        safeSetText('stat-balance-formula', `?�입 - (?�월카드 + ?�월?�금 + ?�정고정�?`);
+        safeSetText('stat-balance-label', `?붾쭚?덉긽?붿븸`);
+        safeSetText('stat-balance-formula', `?섏엯 - (?꾩썡移대뱶 + ?뱀썡?꾧툑 + ?덉젙怨좎젙鍮?`);
         setVal('stat-balance-value', projectedBalance, projectedBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)');
         
-        safeSetText('stat-emergency-exp-label', `?�월비상금�?�?);
+        safeSetText('stat-emergency-exp-label', `?뱀썡鍮꾩긽湲덉?異?);
         setVal('stat-emergency-exp-value', actualEmergencyExp);
 
-        safeSetText('stat-living-exp-label', `${labelPrefix}?�활비사?�액`);
+        safeSetText('stat-living-exp-label', `${labelPrefix}?앺솢鍮꾩궗?⑹븸`);
         setVal('stat-living-exp-value', livingExp);
 
         // Render Key Schedules
@@ -598,8 +607,8 @@ const App = {
 
         // Date labels
         const todayStr = new Date().toISOString().split('T')[0];
-        safeSetText('savings-date-label', `(${todayStr} 기�?)`);
-        safeSetText('emergency-date-label', `(${todayStr} 기�?)`);
+        safeSetText('savings-date-label', `(${todayStr} 湲곗?)`);
+        safeSetText('emergency-date-label', `(${todayStr} 湲곗?)`);
 
         // footer stats
         const summarySavingsEl = document.getElementById('stat-accumulated-savings');
@@ -654,13 +663,13 @@ const App = {
         const daysElapsed = isCurrentMonth ? now.getDate() : lastDay;
         
         const todayDateEl = document.getElementById('today-date');
-        if (todayDateEl) todayDateEl.textContent = isCurrentMonth ? `${targetYear}??${targetMonth + 1}??${daysElapsed}?? : `${targetYear}??${targetMonth + 1}??(마감??`;
+        if (todayDateEl) todayDateEl.textContent = isCurrentMonth ? `${targetYear}??${targetMonth + 1}??${daysElapsed}?? : `${targetYear}??${targetMonth + 1}??(留덇컧??`;
         
         const monthProgressEl = document.getElementById('month-progress');
         if (monthProgressEl) monthProgressEl.textContent = Math.round((daysElapsed / lastDay) * 100);
 
         const forecastContainer = document.getElementById('forecast-stats');
-        const title = mode === 'common' ? '?�� 공동 ?�측' : '?��?��?미나 ?�측';
+        const title = mode === 'common' ? '?룧 怨듬룞 ?덉륫' : '?뫆?랅윃?誘몃굹 ?덉륫';
         const projectedId = mode === 'common' ? 'projected-common' : 'projected-mina';
         const insightId = mode === 'common' ? 'insight-common' : 'insight-mina';
 
@@ -694,12 +703,12 @@ const App = {
             const projectedRemaining = Math.round(dailyLivingExp * daysRemaining);
             
             insightEl.innerHTML = `
-                ?�재 ?�루 ?�균: ??{Math.round(dailyLivingExp).toLocaleString()}<br>
-                ?�말 ?�상 ?�활�? ??{projectedLivingExp.toLocaleString()}<br>
-                <span style="color:var(--primary-accent);">?��? 기간 ?�상 지�? ??{projectedRemaining.toLocaleString()}</span>
+                ?꾩옱 ?섎（ ?됯퇏: ??{Math.round(dailyLivingExp).toLocaleString()}<br>
+                ?붾쭚 ?덉긽 ?앺솢鍮? ??{projectedLivingExp.toLocaleString()}<br>
+                <span style="color:var(--primary-accent);">?⑥? 湲곌컙 ?덉긽 吏異? ??{projectedRemaining.toLocaleString()}</span>
             `;
         } else {
-            insightEl.innerHTML = `최종 ?�활�?지�? ??{data.livingExp.toLocaleString()}`;
+            insightEl.innerHTML = `理쒖쥌 ?앺솢鍮?吏異? ??{data.livingExp.toLocaleString()}`;
         }
     },
 
@@ -713,7 +722,7 @@ const App = {
             .sort((a, b) => parseInt(a.date) - parseInt(b.date));
         
         if (sorted.length === 0) {
-            timeline.innerHTML = '<p style="color:var(--text-dim); padding:1rem;">?�록??고정비�? ?�습?�다.</p>';
+            timeline.innerHTML = '<p style="color:var(--text-dim); padding:1rem;">?깅줉??怨좎젙鍮꾧? ?놁뒿?덈떎.</p>';
             return;
         }
 
@@ -727,7 +736,7 @@ const App = {
         summaryDiv.style.color = 'var(--primary-accent)';
         summaryDiv.style.textAlign = 'right';
         summaryDiv.style.fontSize = '0.9rem';
-        summaryDiv.textContent = `고정�??�계: ??{totalAmount.toLocaleString()}`;
+        summaryDiv.textContent = `怨좎젙鍮??⑷퀎: ??{totalAmount.toLocaleString()}`;
         timeline.appendChild(summaryDiv);
 
         sorted.forEach(item => {
@@ -758,7 +767,7 @@ const App = {
         const categoryMap = {};
         
         transactions
-            .filter(t => t.type === 'expense' && t.category !== '?��?)
+            .filter(t => t.type === 'expense' && t.category !== '?異?)
             .forEach(t => {
                 categoryMap[t.category] = (categoryMap[t.category] || 0) + t.amount;
             });
@@ -812,13 +821,13 @@ const App = {
         manualCatSelect.innerHTML = this.state.categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
         incomeCatSelect.innerHTML = this.state.incomeCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
         
-        const accounts = (this.state.paymentMethods.accounts || []).map(name => `<option value="account|${name}">?�� ${name}</option>`).join('');
-        const cards = (this.state.paymentMethods.cards || []).map(name => `<option value="card|${name}">?�� ${name}</option>`).join('');
+        const accounts = (this.state.paymentMethods.accounts || []).map(name => `<option value="account|${name}">?룱 ${name}</option>`).join('');
+        const cards = (this.state.paymentMethods.cards || []).map(name => `<option value="card|${name}">?뮩 ${name}</option>`).join('');
         
         // Add virtual Emergency Fund account to payment methods if not already there
-        const emergencyOption = `<option value="account|비상금통??>?���?비상금통??/option>`;
+        const emergencyOption = `<option value="account|鍮꾩긽湲덊넻??>?썳截?鍮꾩긽湲덊넻??/option>`;
         
-        paymentSelect.innerHTML = (accounts + cards + emergencyOption) || '<option value="">결제 ?�단 ?�음</option>';
+        paymentSelect.innerHTML = (accounts + cards + emergencyOption) || '<option value="">寃곗젣 ?섎떒 ?놁쓬</option>';
 
         // Manual Expense Entry
         document.getElementById('add-manual-expense').onclick = () => {
@@ -830,7 +839,7 @@ const App = {
             const paymentEl = document.getElementById('manual-payment-method');
             
             if (!paymentEl.value) {
-                alert('결제 ?�단??먼�? ?�록?�주?�요 (?�정 메뉴)');
+                alert('寃곗젣 ?섎떒??癒쇱? ?깅줉?댁＜?몄슂 (?ㅼ젙 硫붾돱)');
                 return;
             }
 
@@ -852,7 +861,7 @@ const App = {
                 ['manual-merchant', 'manual-amount'].forEach(id => document.getElementById(id).value = '');
                 if (this.state.currentPage === 'dashboard') this.initDashboard();
             } else {
-                alert('지�??�보�?모두 ?�력?�주?�요.');
+                alert('吏異??뺣낫瑜?紐⑤몢 ?낅젰?댁＜?몄슂.');
             }
         };
 
@@ -880,7 +889,7 @@ const App = {
                 ['income-source', 'income-amount'].forEach(id => document.getElementById(id).value = '');
                 if (this.state.currentPage === 'dashboard') this.initDashboard();
             } else {
-                alert('?�입 ?�보�?모두 ?�력?�주?�요.');
+                alert('?섏엯 ?뺣낫瑜?紐⑤몢 ?낅젰?댁＜?몄슂.');
             }
         };
 
@@ -937,12 +946,12 @@ const App = {
         const unlockBtn = document.getElementById('unlock-personal-tx');
         if (unlockBtn) {
             unlockBtn.onclick = () => {
-                const pass = prompt('미나 개인 ?�역 비�?번호�??�력?�세??');
+                const pass = prompt('誘몃굹 媛쒖씤 ?댁뿭 鍮꾨?踰덊샇瑜??낅젰?섏꽭??');
                 if (pass === this.state.minaPassword) {
                     this.state.isMinaUnlocked = true;
                     setTab('personal');
                 } else if (pass !== null) {
-                    alert('비�?번호가 ?�바르�? ?�습?�다.');
+                    alert('鍮꾨?踰덊샇媛 ?щ컮瑜댁? ?딆뒿?덈떎.');
                 }
             };
         }
@@ -990,12 +999,12 @@ const App = {
             const catOptions = catList.map(cat => `<option value="${cat}" ${cat === t.category ? 'selected' : ''}>${cat}</option>`).join('');
 
             const typeOptions = `
-                <option value="common" ${t.spendingType === 'common' ? 'selected' : ''}>공동</option>
-                <option value="personal_jaeeon" ${t.spendingType === 'personal_jaeeon' ? 'selected' : ''}>?�언</option>
-                <option value="personal_mina" ${t.spendingType === 'personal_mina' ? 'selected' : ''}>미나</option>
+                <option value="common" ${t.spendingType === 'common' ? 'selected' : ''}>怨듬룞</option>
+                <option value="personal_jaeeon" ${t.spendingType === 'personal_jaeeon' ? 'selected' : ''}>?ъ뼵</option>
+                <option value="personal_mina" ${t.spendingType === 'personal_mina' ? 'selected' : ''}>誘몃굹</option>
             `;
 
-            const pmLabel = t.paymentMethod ? (t.paymentMethod.type === 'account' ? '?�� ' : '?�� ') + t.paymentMethod.name : '-';
+            const pmLabel = t.paymentMethod ? (t.paymentMethod.type === 'account' ? '?룱 ' : '?뮩 ') + t.paymentMethod.name : '-';
 
             row.innerHTML = `
                 <td style="padding: 1rem; color: var(--text-dim);">
@@ -1011,13 +1020,13 @@ const App = {
                 <td style="padding: 1rem; display: flex; gap: 5px; align-items: center;">
                     <select onchange="${isIncome ? 'App.updateIncomeType' : 'App.updateSpendingType'}(${t.id}, this.value)" style="background: rgba(55, 53, 47, 0.05); border: none; padding: 4px 6px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">
                         ${isIncome ? `
-                            <option value="personal_jaeeon" ${t.incomeType === 'personal_jaeeon' ? 'selected' : ''}>?�언</option>
-                            <option value="personal_mina" ${t.incomeType === 'personal_mina' ? 'selected' : ''}>미나</option>
-                            <option value="common" ${t.incomeType === 'common' ? 'selected' : ''}>공동</option>
+                            <option value="personal_jaeeon" ${t.incomeType === 'personal_jaeeon' ? 'selected' : ''}>?ъ뼵</option>
+                            <option value="personal_mina" ${t.incomeType === 'personal_mina' ? 'selected' : ''}>誘몃굹</option>
+                            <option value="common" ${t.incomeType === 'common' ? 'selected' : ''}>怨듬룞</option>
                         ` : `
-                            <option value="common" ${t.spendingType === 'common' ? 'selected' : ''}>공동</option>
-                            <option value="personal_jaeeon" ${t.spendingType === 'personal_jaeeon' ? 'selected' : ''}>?�언</option>
-                            <option value="personal_mina" ${t.spendingType === 'personal_mina' ? 'selected' : ''}>미나</option>
+                            <option value="common" ${t.spendingType === 'common' ? 'selected' : ''}>怨듬룞</option>
+                            <option value="personal_jaeeon" ${t.spendingType === 'personal_jaeeon' ? 'selected' : ''}>?ъ뼵</option>
+                            <option value="personal_mina" ${t.spendingType === 'personal_mina' ? 'selected' : ''}>誘몃굹</option>
                         `}
                     </select>
                     <select onchange="App.updateTransactionCategory(${t.id}, this.value)" style="background: ${isIncome ? 'rgba(11, 110, 79, 0.08)' : 'rgba(55, 53, 47, 0.05)'}; color: ${isIncome ? 'var(--success)' : 'var(--text-main)'}; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; outline: none;">
@@ -1076,7 +1085,7 @@ const App = {
     },
 
     deleteTransaction(id) {
-        if (confirm('???�역????��?�시겠습?�까?')) {
+        if (confirm('???댁뿭????젣?섏떆寃좎뒿?덇퉴?')) {
             this.state.transactions = this.state.transactions.filter(t => t.id !== id);
             this.saveData();
             
@@ -1089,7 +1098,7 @@ const App = {
     },
 
     clearTransactions() {
-        if (confirm('모든 지�??�역????��?�시겠습?�까?')) {
+        if (confirm('紐⑤뱺 吏異??댁뿭????젣?섏떆寃좎뒿?덇퉴?')) {
             this.state.transactions = [];
             this.saveData();
             this.renderTransactionTable();
@@ -1112,8 +1121,8 @@ const App = {
             const incTotalEl = document.getElementById('fixed-income-total-label');
             const costTotalEl = document.getElementById('fixed-cost-total-label');
             
-            if (incTotalEl) incTotalEl.textContent = `(?�계: ??{incTotal.toLocaleString()})`;
-            if (costTotalEl) costTotalEl.textContent = `(?�계: ??{costTotal.toLocaleString()})`;
+            if (incTotalEl) incTotalEl.textContent = `(?⑷퀎: ??{incTotal.toLocaleString()})`;
+            if (costTotalEl) costTotalEl.textContent = `(?⑷퀎: ??{costTotal.toLocaleString()})`;
         };
 
         const renderSourceDropdown = () => {
@@ -1121,10 +1130,10 @@ const App = {
             if (!fixSource) return;
             
             let options = '';
-            options += '<optgroup label="?�� 카드">';
+            options += '<optgroup label="?뮩 移대뱶">';
             options += (this.state.paymentMethods.cards || []).map(c => `<option value="${c}">${c}</option>`).join('');
             options += '</optgroup>';
-            options += '<optgroup label="?�� ?�장">';
+            options += '<optgroup label="?룱 ?듭옣">';
             options += (this.state.paymentMethods.accounts || []).map(a => `<option value="${a}">${a}</option>`).join('');
             options += '</optgroup>';
             
@@ -1155,14 +1164,14 @@ const App = {
                 div.style.background = 'rgba(11, 110, 79, 0.03)';
                 div.style.borderRadius = '8px';
                 div.style.marginBottom = '0.5rem';
-                const typeLabel = item.incomeType === 'common' ? '공동' : (item.incomeType === 'personal_jaeeon' ? '?�언' : '미나');
+                const typeLabel = item.incomeType === 'common' ? '怨듬룞' : (item.incomeType === 'personal_jaeeon' ? '?ъ뼵' : '誘몃굹');
                 div.innerHTML = `
                     <div style="flex: 1;">
-                        <div style="font-weight: 600; color: var(--success);">${item.name} <span style="font-size: 0.75rem; color: var(--text-dim);">[${item.date}??/ ${typeLabel} / ${item.category || '급여'}]</span></div>
-                        <div style="font-size: 0.8rem; color: var(--text-dim);">???�기 ?�입</div>
+                        <div style="font-weight: 600; color: var(--success);">${item.name} <span style="font-size: 0.75rem; color: var(--text-dim);">[${item.date}??/ ${typeLabel} / ${item.category || '湲됱뿬'}]</span></div>
+                        <div style="font-size: 0.8rem; color: var(--text-dim);">???뺢린 ?섏엯</div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <button class="btn btn-secondary" style="font-size: 0.65rem; padding: 4px 6px; background: rgba(11, 110, 79, 0.08); color: var(--success); border: none;" onclick="App.processFixedIncome(${originalIndex})">?�입처리</button>
+                        <button class="btn btn-secondary" style="font-size: 0.65rem; padding: 4px 6px; background: rgba(11, 110, 79, 0.08); color: var(--success); border: none;" onclick="App.processFixedIncome(${originalIndex})">?섏엯泥섎━</button>
                         <div style="font-weight: 600; color: var(--success);">??{parseInt(item.amount).toLocaleString()}</div>
                         <button style="background:none; border:none; color:var(--danger); cursor:pointer;" onclick="App.deleteFixedIncome(${originalIndex})">??/button>
                     </div>
@@ -1198,14 +1207,14 @@ const App = {
             div.style.background = 'rgba(255,255,255,0.03)';
             div.style.borderRadius = '8px';
             div.style.marginBottom = '0.5rem';
-            const typeLabel = item.spendingType === 'common' ? '공동' : (item.spendingType === 'personal_jaeeon' ? '?�언' : '미나');
+            const typeLabel = item.spendingType === 'common' ? '怨듬룞' : (item.spendingType === 'personal_jaeeon' ? '?ъ뼵' : '誘몃굹');
             div.innerHTML = `
                     <div style="flex: 1;">
-                        <div style="font-weight: 600;">${item.name} <span style="font-size: 0.75rem; color: var(--text-dim);">[${item.date}??/ ${typeLabel} / ${item.category || '미�???}]</span></div>
+                        <div style="font-weight: 600;">${item.name} <span style="font-size: 0.75rem; color: var(--text-dim);">[${item.date}??/ ${typeLabel} / ${item.category || '誘몄???}]</span></div>
                         <div style="font-size: 0.8rem; color: var(--text-dim);">${item.source}</div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <button class="btn btn-secondary" style="font-size: 0.65rem; padding: 4px 6px; background: rgba(139, 92, 246, 0.1); color: var(--primary-accent); border: none;" onclick="App.processFixed(${originalIndex})">지출처�?/button>
+                        <button class="btn btn-secondary" style="font-size: 0.65rem; padding: 4px 6px; background: rgba(139, 92, 246, 0.1); color: var(--primary-accent); border: none;" onclick="App.processFixed(${originalIndex})">吏異쒖쿂由?/button>
                         <div style="font-weight: 600;">??{parseInt(item.amount).toLocaleString()}</div>
                         <button style="background:none; border:none; color:var(--danger); cursor:pointer;" onclick="App.deleteFixed(${originalIndex})">??/button>
                     </div>
@@ -1310,7 +1319,7 @@ const App = {
                 renderFixed();
                 ['fixed-name', 'fixed-amount', 'fixed-date', 'fixed-source'].forEach(id => document.getElementById(id).value = '');
             } else {
-                alert('??���? 금액, 출금?��? ?�수 ?�력 ?�항?�니??');
+                alert('??ぉ紐? 湲덉븸, 異쒓툑?쇱? ?꾩닔 ?낅젰 ?ы빆?낅땲??');
             }
         };
 
@@ -1345,19 +1354,19 @@ const App = {
             const newPass = document.getElementById('new-mina-pass').value.trim();
 
             if (!currentPass || !newPass) {
-                alert('?�재 비�?번호?� ??비�?번호�?모두 ?�력?�주?�요.');
+                alert('?꾩옱 鍮꾨?踰덊샇? ??鍮꾨?踰덊샇瑜?紐⑤몢 ?낅젰?댁＜?몄슂.');
                 return;
             }
 
             if (currentPass !== this.state.minaPassword) {
-                alert('?�재 비�?번호가 ?�치?��? ?�습?�다.');
+                alert('?꾩옱 鍮꾨?踰덊샇媛 ?쇱튂?섏? ?딆뒿?덈떎.');
                 return;
             }
 
             if (newPass) {
                 this.state.minaPassword = newPass;
                 this.saveData();
-                alert('비�?번호가 ?�공?�으�?변경되?�습?�다.');
+                alert('鍮꾨?踰덊샇媛 ?깃났?곸쑝濡?蹂寃쎈릺?덉뒿?덈떎.');
                 document.getElementById('current-mina-pass').value = '';
                 document.getElementById('new-mina-pass').value = '';
             }
@@ -1377,7 +1386,7 @@ const App = {
                 renderFixedIncomes();
                 ['fixed-inc-name', 'fixed-inc-amount', 'fixed-inc-date'].forEach(id => document.getElementById(id).value = '');
             } else {
-                alert('??���? 금액, ?�금?��? ?�수 ?�력 ?�항?�니??');
+                alert('??ぉ紐? 湲덉븸, ?낃툑?쇱? ?꾩닔 ?낅젰 ?ы빆?낅땲??');
             }
         };
 
@@ -1391,16 +1400,16 @@ const App = {
                 const currentPass = document.getElementById('current-common-pass').value;
                 const newPass = document.getElementById('new-common-pass').value.trim();
                 if (!currentPass || !newPass) {
-                    alert('���� ��й�ȣ�� �� ��й�ȣ�� ��� �Է����ּ���.');
+                    alert('현재 비밀번호와 새 비밀번호를 모두 입력해주세요.');
                     return;
                 }
                 if (currentPass !== this.state.commonPassword) {
-                    alert('���� ��й�ȣ�� ��ġ���� �ʽ��ϴ�.');
+                    alert('현재 비밀번호가 일치하지 않습니다.');
                     return;
                 }
                 this.state.commonPassword = newPass;
                 this.saveData();
-                alert('���� ��й�ȣ�� ���������� ����Ǿ����ϴ�.');
+                alert('공동 비밀번호가 성공적으로 변경되었습니다.');
                 document.getElementById('current-common-pass').value = '';
                 document.getElementById('new-common-pass').value = '';
             };
@@ -1424,7 +1433,7 @@ const App = {
         }).sort((a, b) => a.date.localeCompare(b.date));
 
         if (filtered.length === 0) {
-            container.innerHTML = '<span style="color:var(--text-dim); font-size:0.8rem;">?�정 ?�음</span>';
+            container.innerHTML = '<span style="color:var(--text-dim); font-size:0.8rem;">?쇱젙 ?놁쓬</span>';
             return;
         }
 
@@ -1461,7 +1470,7 @@ const App = {
             span.style.alignItems = 'center';
             span.style.gap = '8px';
             
-            const typeLabel = s.type === 'common' ? '공동' : (s.type === 'personal_jaeeon' ? '?�언' : '미나');
+            const typeLabel = s.type === 'common' ? '怨듬룞' : (s.type === 'personal_jaeeon' ? '?ъ뼵' : '誘몃굹');
             span.innerHTML = `
                 <strong style="color:var(--primary-accent);">${s.date}</strong> 
                 <span>${s.content}</span> 
@@ -1482,7 +1491,7 @@ const App = {
                 this.initSettings();
                 document.getElementById('new-schedule-content').value = '';
             } else {
-                alert('?�짜?� ?�용??모두 ?�력?�주?�요.');
+                alert('?좎쭨? ?댁슜??紐⑤몢 ?낅젰?댁＜?몄슂.');
             }
         };
     },
@@ -1508,7 +1517,7 @@ const App = {
         );
 
         if (alreadyAdded) {
-            alert(`'${item.name}' ??��?� ?��? ?�번 ???�입?�로 처리?�었?�니??`);
+            alert(`'${item.name}' ??ぉ? ?대? ?대쾲 ???섏엯?쇰줈 泥섎━?섏뿀?듬땲??`);
             return;
         }
 
@@ -1520,15 +1529,15 @@ const App = {
             type: 'income',
             incomeType: item.incomeType || 'common',
             date: transactionDate,
-            merchant: `[고정] ${item.name}`,
+            merchant: `[怨좎젙] ${item.name}`,
             amount: parseInt(item.amount),
-            category: item.category || '급여',
+            category: item.category || '湲됱뿬',
             isAutoIncome: true,
             fixedIncomeName: item.name
         });
 
         this.saveData();
-        alert(`'${item.name}' ?�입처리가 ?�료?�었?�니??`);
+        alert(`'${item.name}' ?섏엯泥섎━媛 ?꾨즺?섏뿀?듬땲??`);
         this.initSettings();
     },
 
@@ -1550,9 +1559,9 @@ const App = {
                     type: 'income',
                     incomeType: item.incomeType || 'common',
                     date: transactionDate,
-                    merchant: `[고정] ${item.name}`,
+                    merchant: `[怨좎젙] ${item.name}`,
                     amount: parseInt(item.amount),
-                    category: item.category || '급여',
+                    category: item.category || '湲됱뿬',
                     isAutoIncome: true,
                     fixedIncomeName: item.name
                 });
@@ -1562,10 +1571,10 @@ const App = {
 
         if (addedCount > 0) {
             this.saveData();
-            alert(`${addedCount}개의 고정 ?�입 처리가 ?�료?�었?�니??`);
+            alert(`${addedCount}媛쒖쓽 怨좎젙 ?섏엯 泥섎━媛 ?꾨즺?섏뿀?듬땲??`);
             this.initSettings();
         } else {
-            alert('?��? 모든 고정 ?�입??처리?�었?�니??');
+            alert('?대? 紐⑤뱺 怨좎젙 ?섏엯??泥섎━?섏뿀?듬땲??');
         }
     },
 
@@ -1600,7 +1609,7 @@ const App = {
         );
 
         if (alreadyAdded) {
-            alert(`'${item.name}' ??��?� ?��? ?�번 ??지출로 처리?�었?�니??`);
+            alert(`'${item.name}' ??ぉ? ?대? ?대쾲 ??吏異쒕줈 泥섎━?섏뿀?듬땲??`);
             return;
         }
 
@@ -1612,19 +1621,19 @@ const App = {
             type: 'expense',
             spendingType: item.spendingType || 'common',
             date: transactionDate,
-            merchant: `[고정] ${item.name}`,
+            merchant: `[怨좎젙] ${item.name}`,
             amount: parseInt(item.amount),
-            category: item.category || '기�?',
+            category: item.category || '湲고?',
             paymentMethod: { 
                 type: this.state.paymentMethods.cards.includes(item.source) ? 'card' : 'account', 
-                name: item.source || '?�동?�체' 
+                name: item.source || '?먮룞?댁껜' 
             },
             isAutoFixed: true,
             fixedCostName: item.name
         });
 
         this.saveData();
-        alert(`'${item.name}' 지출처리�? ?�료?�었?�니??`);
+        alert(`'${item.name}' 吏異쒖쿂由ш? ?꾨즺?섏뿀?듬땲??`);
         this.renderFixed(); // To refresh if needed, though not strictly necessary
     },
 
@@ -1646,12 +1655,12 @@ const App = {
                     type: 'expense',
                     spendingType: item.spendingType || 'common',
                     date: transactionDate,
-                    merchant: `[고정] ${item.name}`,
+                    merchant: `[怨좎젙] ${item.name}`,
                     amount: parseInt(item.amount),
-                    category: item.category || '기�?',
+                    category: item.category || '湲고?',
                     paymentMethod: { 
                         type: this.state.paymentMethods.cards.includes(item.source) ? 'card' : 'account', 
-                        name: item.source || '?�동?�체' 
+                        name: item.source || '?먮룞?댁껜' 
                     },
                     isAutoFixed: true,
                     fixedCostName: item.name
@@ -1662,21 +1671,21 @@ const App = {
 
         if (addedCount > 0) {
             this.saveData();
-            alert(`${addedCount}개의 고정�?지출처리�? ?�료?�었?�니??`);
+            alert(`${addedCount}媛쒖쓽 怨좎젙鍮?吏異쒖쿂由ш? ?꾨즺?섏뿀?듬땲??`);
         } else {
-            alert('?��? 모든 고정비�? 처리?�었?�니??');
+            alert('?대? 紐⑤뱺 怨좎젙鍮꾧? 泥섎━?섏뿀?듬땲??');
         }
     },
 
     calculateEmergencyBalance() {
-        // Emergency Fund Balance = Sum(Expenses with Category '비상�?) - Sum(Expenses with PM '비상금통??)
+        // Emergency Fund Balance = Sum(Expenses with Category '鍮꾩긽湲?) - Sum(Expenses with PM '鍮꾩긽湲덊넻??)
         const deposits = this.state.transactions
-            .filter(t => t.type === 'expense' && t.category === '비상�?)
+            .filter(t => t.type === 'expense' && t.category === '鍮꾩긽湲?)
             .reduce((sum, item) => sum + item.amount, 0);
         
-        // Withdrawals = Expenses where '비상금통?? was used as payment method
+        // Withdrawals = Expenses where '鍮꾩긽湲덊넻?? was used as payment method
         const withdrawals = this.state.transactions
-            .filter(t => t.type === 'expense' && t.paymentMethod?.name === '비상금통??)
+            .filter(t => t.type === 'expense' && t.paymentMethod?.name === '鍮꾩긽湲덊넻??)
             .reduce((sum, item) => sum + item.amount, 0);
         
         return deposits - withdrawals;
@@ -1684,7 +1693,7 @@ const App = {
 
     showEmergencyDetails() {
         this.state.currentPage = 'pm-summary';
-        this.state.pendingPmFilter = 'account|비상금통??;
+        this.state.pendingPmFilter = 'account|鍮꾩긽湲덊넻??;
         this.render();
     },
 
@@ -1753,12 +1762,12 @@ const App = {
         const unlockBtn = document.getElementById('unlock-pm-tx');
         if (unlockBtn) {
             unlockBtn.onclick = () => {
-                const pass = prompt('미나 개인 ?�역 비�?번호�??�력?�세??');
+                const pass = prompt('誘몃굹 媛쒖씤 ?댁뿭 鍮꾨?踰덊샇瑜??낅젰?섏꽭??');
                 if (pass === this.state.minaPassword) {
                     this.state.isMinaUnlocked = true;
                     setTab('personal');
                 } else if (pass !== null) {
-                    alert('비�?번호가 ?�바르�? ?�습?�다.');
+                    alert('鍮꾨?踰덊샇媛 ?щ컮瑜댁? ?딆뒿?덈떎.');
                 }
             };
         }
@@ -1766,15 +1775,15 @@ const App = {
         monthSelect.value = this.state.selectedMonth;
         
         const allCats = [...this.state.categories, ...this.state.incomeCategories];
-        catFilter.innerHTML = '<option value="all">모든 ??��</option>' +
+        catFilter.innerHTML = '<option value="all">紐⑤뱺 ??ぉ</option>' +
             allCats.map(c => `<option value="${c}">${c}</option>`).join('');
 
         const accounts = this.state.paymentMethods.accounts || [];
         const cards = this.state.paymentMethods.cards || [];
-        filterSelect.innerHTML = '<option value="all">모든 결제?�단</option>' +
-            accounts.map(a => `<option value="account|${a}">?�� ${a}</option>`).join('') +
-            cards.map(c => `<option value="card|${c}">?�� ${c}</option>`).join('') +
-            '<option value="account|비상금통??>?���?비상금통??/option>';
+        filterSelect.innerHTML = '<option value="all">紐⑤뱺 寃곗젣?섎떒</option>' +
+            accounts.map(a => `<option value="account|${a}">?룱 ${a}</option>`).join('') +
+            cards.map(c => `<option value="card|${c}">?뮩 ${c}</option>`).join('') +
+            '<option value="account|鍮꾩긽湲덊넻??>?썳截?鍮꾩긽湲덊넻??/option>';
 
         if (this.state.pendingPmFilter) {
             filterSelect.value = this.state.pendingPmFilter;
@@ -1801,8 +1810,8 @@ const App = {
                 if (selectedCat !== 'all' && t.category !== selectedCat) return false;
                 if (filterSelect.value === 'all') return true;
 
-                if (name === '비상금통??) {
-                    return (t.paymentMethod?.name === name) || (t.category === '비상�?);
+                if (name === '鍮꾩긽湲덊넻??) {
+                    return (t.paymentMethod?.name === name) || (t.category === '鍮꾩긽湲?);
                 }
                 
                 return t.paymentMethod && t.paymentMethod.type === type && t.paymentMethod.name === name;
@@ -1812,7 +1821,7 @@ const App = {
             if (filterSelect.value === 'all') {
                 const pmMap = {};
                 filtered.filter(t => t.type === 'expense').forEach(t => {
-                    const pmKey = t.paymentMethod ? `${t.paymentMethod.type === 'account' ? '?��' : '?��'} ${t.paymentMethod.name}` : '기�?';
+                    const pmKey = t.paymentMethod ? `${t.paymentMethod.type === 'account' ? '?룱' : '?뮩'} ${t.paymentMethod.name}` : '湲고?';
                     pmMap[pmKey] = (pmMap[pmKey] || 0) + t.amount;
                 });
 
@@ -1831,7 +1840,7 @@ const App = {
                 summaryHtml = `
                     <div class="glass-card" style="padding: 1.5rem; margin-bottom: 2rem; border-left: 4px solid var(--primary-accent); display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <div style="font-size: 0.9rem; color: var(--text-dim);">${name || '?�택??결제?�단'} ?�계</div>
+                            <div style="font-size: 0.9rem; color: var(--text-dim);">${name || '?좏깮??寃곗젣?섎떒'} ?⑷퀎</div>
                             <div style="font-size: 2rem; font-weight: 700; color: var(--primary-accent);">??{total.toLocaleString()}</div>
                         </div>
                     </div>
@@ -1843,19 +1852,19 @@ const App = {
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr style="background: rgba(0,0,0,0.02);">
-                                <th style="padding: 1rem; text-align: left;">?�짜</th>
-                                <th style="padding: 1rem; text-align: left;">?�용</th>
-                                <th style="padding: 1rem; text-align: left;">결제?�단</th>
-                                <th style="padding: 1rem; text-align: right;">금액</th>
-                                <th style="padding: 1rem; text-align: center;">??��</th>
+                                <th style="padding: 1rem; text-align: left;">?좎쭨</th>
+                                <th style="padding: 1rem; text-align: left;">?댁슜</th>
+                                <th style="padding: 1rem; text-align: left;">寃곗젣?섎떒</th>
+                                <th style="padding: 1rem; text-align: right;">湲덉븸</th>
+                                <th style="padding: 1rem; text-align: center;">??젣</th>
                             </tr>
                         </thead>
                         <tbody>
             `;
 
             filtered.sort((a, b) => b.date.localeCompare(a.date)).forEach(t => {
-                const pmLabel = t.paymentMethod ? `${t.paymentMethod.type === 'account' ? '?��' : '?��'} ${t.paymentMethod.name}` : '-';
-                const isDepositInView = name === '비상금통?? && t.category === '비상�?;
+                const pmLabel = t.paymentMethod ? `${t.paymentMethod.type === 'account' ? '?룱' : '?뮩'} ${t.paymentMethod.name}` : '-';
+                const isDepositInView = name === '鍮꾩긽湲덊넻?? && t.category === '鍮꾩긽湲?;
                 const isPositive = t.type === 'income' || isDepositInView;
                 
                 tableHtml += `
@@ -1874,7 +1883,7 @@ const App = {
             });
 
             if (filtered.length === 0) {
-                tableHtml += '<tr><td colspan="5" style="padding: 3rem; text-align: center; color: var(--text-dim);">?�역???�습?�다.</td></tr>';
+                tableHtml += '<tr><td colspan="5" style="padding: 3rem; text-align: center; color: var(--text-dim);">?댁뿭???놁뒿?덈떎.</td></tr>';
             }
 
             tableHtml += `
