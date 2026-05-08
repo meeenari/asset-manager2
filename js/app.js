@@ -703,7 +703,7 @@ const App = {
                 </div>
                 <div style="flex: 1;">
                     <div style="font-weight: 600;">${item.name}</div>
-                    <div style="font-size: 0.8rem; color: var(--text-dim);">${item.source} (${item.payer})</div>
+                    <div style="font-size: 0.8rem; color: var(--text-dim);">${item.source}</div>
                 </div>
                 <div style="font-weight: 700;">₩${parseInt(item.amount).toLocaleString()}</div>
             `;
