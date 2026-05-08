@@ -396,15 +396,44 @@
             
             <div class="glass-card animate-fade" style="grid-column: span 2;">
                 <h3 style="margin-bottom: 1.5rem;">🔒 보안 설정</h3>
-                <div style="max-width: 400px;">
-                    <label style="font-size: 0.8rem; color: var(--text-dim);">미나 대시보드 비밀번호 변경</label>
-                    <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 0.5rem;">
-                        <input type="password" id="current-mina-pass" placeholder="현재 비밀번호" style="margin-bottom: 0;">
-                        <div style="display: flex; gap: 8px;">
-                            <input type="password" id="new-mina-pass" placeholder="새 비밀번호" style="margin-bottom: 0; flex: 1;">
-                            <button class="btn" id="save-mina-pass">변경</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-dim);">공동 대시보드 비밀번호 변경 (접속용)</label>
+                        <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 0.5rem;">
+                            <input type="password" id="current-common-pass" placeholder="현재 비밀번호" style="margin-bottom: 0;">
+                            <div style="display: flex; gap: 8px;">
+                                <input type="password" id="new-common-pass" placeholder="새 비밀번호" style="margin-bottom: 0; flex: 1;">
+                                <button class="btn btn-secondary" id="save-common-pass">변경</button>
+                            </div>
                         </div>
                     </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-dim);">미나 개인 내역 비밀번호 변경</label>
+                        <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 0.5rem;">
+                            <input type="password" id="current-mina-pass" placeholder="현재 비밀번호" style="margin-bottom: 0;">
+                            <div style="display: flex; gap: 8px;">
+                                <input type="password" id="new-mina-pass" placeholder="새 비밀번호" style="margin-bottom: 0; flex: 1;">
+                                <button class="btn" id="save-mina-pass">변경</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Login Template -->
+    <template id="tpl-login">
+        <div style="height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg-color);">
+            <div class="glass-card animate-fade" style="width: 100%; max-width: 400px; text-align: center; padding: 4rem 2rem;">
+                <div style="font-size: 4rem; margin-bottom: 2rem;">🏠</div>
+                <h1 style="margin-bottom: 0.5rem;">재미가계부</h1>
+                <p style="color: var(--text-dim); margin-bottom: 3rem; font-size: 1rem;">우리 가족의 자산 관리 서비스입니다.</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+                    <input type="password" id="common-pass-input" placeholder="비밀번호" style="text-align: center; font-size: 1.5rem; letter-spacing: 0.8rem; padding: 1.2rem; border-radius: 15px; background: rgba(255,255,255,0.05);">
+                    <button class="btn" id="common-pass-submit" style="width: 100%; padding: 1.2rem; font-size: 1.1rem; border-radius: 15px;">시작하기</button>
+                    <div id="common-pass-error" style="color: var(--danger); font-size: 0.9rem; margin-top: 0.5rem; display: none; font-weight: 500;">비밀번호가 올바르지 않습니다.</div>
                 </div>
             </div>
         </div>
