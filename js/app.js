@@ -484,7 +484,12 @@ const App = {
             .reduce((sum, t) => sum + t.amount, 0);
         const totalIncomeForMonth = totalFixedIncomeBase + extraIncomeReceived;
 
-        const livingExp = (totalActualExp || 0) - (paidFixedExp || 0);
+        // Emergency Fund Spending in current month
+        const actualEmergencyExp = actualMonthTxs
+            .filter(t => t.type === 'expense' && t.paymentMethod?.name === '비상금통장')
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        const livingExp = (totalActualExp || 0) - (paidFixedExp || 0) - (actualEmergencyExp || 0);
 
         // 5. Projected Month-end Balance (User formula: Income - Prev Card Bill - Actual Cash Exp - Remaining Account Fixed)
         const remainingFixedAccountExp = (totalFixedExpenseAccountOnly || 0) - (paidFixedCashExp || 0);
@@ -522,6 +527,9 @@ const App = {
         safeSetText('stat-balance-label', `월말예상잔액`);
         setVal('stat-balance-value', projectedBalance, projectedBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)');
         
+        safeSetText('stat-emergency-exp-label', `${labelPrefix}당월비상금지출`);
+        setVal('stat-emergency-exp-value', actualEmergencyExp);
+
         safeSetText('stat-living-exp-label', `${labelPrefix}생활비사용액`);
         setVal('stat-living-exp-value', livingExp);
 
