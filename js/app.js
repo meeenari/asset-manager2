@@ -27,6 +27,7 @@ const App = {
         minaPassword: '0000',
         isMinaUnlocked: false,
         txTabMode: 'common',
+        pmTabMode: 'common',
         schedules: []
     },
 
@@ -1633,17 +1634,82 @@ const App = {
         const catFilter = document.getElementById('pm-category-filter');
         const filterSelect = document.getElementById('pm-summary-filter');
         const content = document.getElementById('pm-summary-content');
+        
+        const allTab = document.getElementById('pm-tab-all');
+        const commonTab = document.getElementById('pm-tab-common');
+        const personalTab = document.getElementById('pm-tab-personal');
+        const lockMsg = document.getElementById('pm-lock-msg');
+        const filterCard = document.getElementById('pm-filter-card');
 
         if (!monthSelect || !catFilter || !filterSelect || !content) return;
 
+        const setTab = (mode) => {
+            this.state.pmTabMode = mode;
+            [allTab, commonTab, personalTab].forEach(t => {
+                if (t) {
+                    t.style.color = 'var(--text-dim)';
+                    t.style.borderBottom = 'none';
+                }
+            });
+
+            if (mode === 'all') {
+                if (allTab) {
+                    allTab.style.color = 'var(--primary-accent)';
+                    allTab.style.borderBottom = '2px solid var(--primary-accent)';
+                }
+                if (lockMsg) lockMsg.style.display = 'none';
+                if (filterCard) filterCard.style.display = 'block';
+                if (content) content.style.display = 'block';
+            } else if (mode === 'common') {
+                if (commonTab) {
+                    commonTab.style.color = 'var(--primary-accent)';
+                    commonTab.style.borderBottom = '2px solid var(--primary-accent)';
+                }
+                if (lockMsg) lockMsg.style.display = 'none';
+                if (filterCard) filterCard.style.display = 'block';
+                if (content) content.style.display = 'block';
+            } else {
+                if (personalTab) {
+                    personalTab.style.color = 'var(--primary-accent)';
+                    personalTab.style.borderBottom = '2px solid var(--primary-accent)';
+                }
+                
+                if (this.state.isMinaUnlocked) {
+                    if (lockMsg) lockMsg.style.display = 'none';
+                    if (filterCard) filterCard.style.display = 'block';
+                    if (content) content.style.display = 'block';
+                } else {
+                    if (lockMsg) lockMsg.style.display = 'block';
+                    if (filterCard) filterCard.style.display = 'none';
+                    if (content) content.style.display = 'none';
+                }
+            }
+            render();
+        };
+
+        if (allTab) allTab.onclick = () => setTab('all');
+        if (commonTab) commonTab.onclick = () => setTab('common');
+        if (personalTab) personalTab.onclick = () => setTab('personal');
+        
+        const unlockBtn = document.getElementById('unlock-pm-tx');
+        if (unlockBtn) {
+            unlockBtn.onclick = () => {
+                const pass = prompt('미나 개인 내역 비밀번호를 입력하세요:');
+                if (pass === this.state.minaPassword) {
+                    this.state.isMinaUnlocked = true;
+                    setTab('personal');
+                } else if (pass !== null) {
+                    alert('비밀번호가 올바르지 않습니다.');
+                }
+            };
+        }
+
         monthSelect.value = this.state.selectedMonth;
         
-        // Populate Category Filter
         const allCats = [...this.state.categories, ...this.state.incomeCategories];
         catFilter.innerHTML = '<option value="all">모든 항목</option>' +
             allCats.map(c => `<option value="${c}">${c}</option>`).join('');
 
-        // Populate PM Filter
         const accounts = this.state.paymentMethods.accounts || [];
         const cards = this.state.paymentMethods.cards || [];
         filterSelect.innerHTML = '<option value="all">모든 결제수단</option>' +
@@ -1665,13 +1731,17 @@ const App = {
                 const isInMonth = t.date.startsWith(selectedMonth);
                 if (!isInMonth) return false;
                 
-                // Category filter
-                if (selectedCat !== 'all' && t.category !== selectedCat) return false;
+                if (this.state.pmTabMode === 'common') {
+                    if (!((t.spendingType === 'common') || (t.incomeType === 'common'))) return false;
+                } else if (this.state.pmTabMode === 'personal') {
+                    const isPersonal = (t.spendingType === 'personal_jaeeon' || t.spendingType === 'personal_mina') || 
+                                     (t.incomeType === 'personal_jaeeon' || t.incomeType === 'personal_mina');
+                    if (!isPersonal) return false;
+                }
 
-                // PM filter
+                if (selectedCat !== 'all' && t.category !== selectedCat) return false;
                 if (filterSelect.value === 'all') return true;
 
-                // Special logic for Emergency Fund: include deposits (category '비상금')
                 if (name === '비상금통장') {
                     return (t.paymentMethod?.name === name) || (t.category === '비상금');
                 }
@@ -1679,7 +1749,6 @@ const App = {
                 return t.paymentMethod && t.paymentMethod.type === type && t.paymentMethod.name === name;
             });
 
-            // Group by payment method for summary cards if "all" is selected
             let summaryHtml = '';
             if (filterSelect.value === 'all') {
                 const pmMap = {};
@@ -1710,7 +1779,6 @@ const App = {
                 `;
             }
 
-            // Table
             let tableHtml = `
                 <div class="glass-card" style="padding: 0; overflow: hidden;">
                     <table style="width: 100%; border-collapse: collapse;">
@@ -1728,8 +1796,6 @@ const App = {
 
             filtered.sort((a, b) => b.date.localeCompare(a.date)).forEach(t => {
                 const pmLabel = t.paymentMethod ? `${t.paymentMethod.type === 'account' ? '🏦' : '💳'} ${t.paymentMethod.name}` : '-';
-                
-                // For Emergency Fund view, treat category '비상금' (deposits) as positive
                 const isDepositInView = name === '비상금통장' && t.category === '비상금';
                 const isPositive = t.type === 'income' || isDepositInView;
                 
@@ -1749,7 +1815,7 @@ const App = {
             });
 
             if (filtered.length === 0) {
-                tableHtml += '<tr><td colspan="4" style="padding: 3rem; text-align: center; color: var(--text-dim);">내역이 없습니다.</td></tr>';
+                tableHtml += '<tr><td colspan="5" style="padding: 3rem; text-align: center; color: var(--text-dim);">내역이 없습니다.</td></tr>';
             }
 
             tableHtml += `
@@ -1768,7 +1834,7 @@ const App = {
         catFilter.onchange = render;
         filterSelect.onchange = render;
 
-        render();
+        setTab(this.state.pmTabMode || 'common');
     }
 };
 

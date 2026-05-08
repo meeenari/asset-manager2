@@ -419,7 +419,13 @@
             </div>
         </header>
 
-        <div class="glass-card animate-fade" style="margin-bottom: 2rem;">
+        <div style="display: flex; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border);">
+            <div id="pm-tab-all" style="cursor: pointer; padding: 0.5rem 1rem; font-weight: 600; color: var(--text-dim); transition: all 0.3s;">전체</div>
+            <div id="pm-tab-common" style="cursor: pointer; padding: 0.5rem 1rem; font-weight: 600; color: var(--text-dim); transition: all 0.3s;">공동</div>
+            <div id="pm-tab-personal" style="cursor: pointer; padding: 0.5rem 1rem; font-weight: 600; color: var(--text-dim); transition: all 0.3s;">개인(재언+미나) 🔒</div>
+        </div>
+
+        <div class="glass-card animate-fade" style="margin-bottom: 2rem;" id="pm-filter-card">
             <div style="display: flex; gap: 1rem; align-items: center;">
                 <input type="month" id="pm-summary-month" style="margin-bottom: 0; width: 160px;">
                 <select id="pm-category-filter" style="margin-bottom: 0; flex: 1;">
@@ -429,6 +435,11 @@
                     <option value="all">모든 결제수단</option>
                 </select>
             </div>
+        </div>
+
+        <div id="pm-lock-msg" style="display: none; padding: 2rem; text-align: center; margin-bottom: 2rem;" class="glass-card animate-fade">
+            <p style="color: var(--text-dim); margin-bottom: 1rem;">개인 내역은 비밀번호 인증이 필요합니다.</p>
+            <button class="btn" id="unlock-pm-tx">비밀번호 입력</button>
         </div>
 
         <div id="pm-summary-content" class="animate-fade">
