@@ -411,17 +411,29 @@ const App = {
             
         const totalActualExp = actualCardExp + actualCashExp;
 
-        // 2. Shifted transactions for Balance calculation
-        // (Card from prev month, Account from current month)
-        // This is already what's in filteredTransactions (expenses only)
+        // 2. Variable Cash spending (Account transactions NOT automatic fixed costs)
+        const variableCashExp = actualMonthTxs
+            .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'account' && !t.isAutoFixed && t.category !== '저축')
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        // 3. Shifted transactions (Card from prev month)
         const shiftedCardExp = filteredTransactions
             .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'card' && t.category !== '저축')
             .reduce((sum, t) => sum + t.amount, 0);
         
-        // currentBalance (using the user's logic: Income - (PrevCard + CurrentCash))
-        const currentBalance = mode === 'common' ? commonRem : minaRem;
+        // 4. Total Monthly Income (Fixed + Extra)
+        const extraIncomeReceived = actualMonthTxs
+            .filter(t => t.type === 'income' && !t.isAutoIncome)
+            .reduce((sum, t) => sum + t.amount, 0);
+        const totalIncomeForMonth = totalFixedIncomeBase + extraIncomeReceived;
 
-        // 3. Update DOM
+        // currentBalance = Total Monthly Income - (Prev Card Bill + Variable Cash Spending + Total Monthly Fixed Expenses)
+        const currentBalance = totalIncomeForMonth - (shiftedCardExp + variableCashExp + totalFixedExpense);
+
+        // 생활비사용액 = (Actual Card + Actual Cash) - Total Fixed Expenses
+        const livingExp = totalActualExp - totalFixedExpense;
+
+        // 5. Update DOM
         const setVal = (id, val, color) => {
             const el = document.getElementById(id);
             if (el) {
@@ -448,7 +460,6 @@ const App = {
         document.getElementById('stat-balance-label').textContent = `${labelPrefix}현재잔액`;
         setVal('stat-balance-value', currentBalance, currentBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)');
         
-        const livingExp = totalActualExp - totalFixedExpense;
         document.getElementById('stat-living-exp-label').textContent = `${labelPrefix}생활비사용액`;
         setVal('stat-living-exp-value', livingExp);
 
