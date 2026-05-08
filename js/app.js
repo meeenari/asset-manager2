@@ -430,16 +430,6 @@ const App = {
         // currentBalance = Total Monthly Income - (Prev Card Bill + Variable Cash Spending + Total Monthly Fixed Expenses)
         const currentBalance = totalIncomeForMonth - (shiftedCardExp + variableCashExp + totalFixedExpense);
 
-        // 생활비사용액 = 고정비(isAutoFixed)를 제외한 순수 변동 지출액
-        const livingExp = actualMonthTxs
-            .filter(t => t.type === 'expense' && !t.isAutoFixed && t.category !== '저축')
-            .reduce((sum, t) => sum + t.amount, 0);
-
-        // 당월개인지출누계(재언+미나)
-        const personalSum = actualMonthTxs
-            .filter(t => t.type === 'expense' && (t.spendingType === 'personal_jaeeon' || t.spendingType === 'personal_mina') && t.category !== '저축')
-            .reduce((sum, t) => sum + t.amount, 0);
-
         // 5. Update DOM
         const setVal = (id, val, color) => {
             const el = document.getElementById(id);
@@ -468,7 +458,7 @@ const App = {
         setVal('stat-balance-value', currentBalance, currentBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)');
         
         document.getElementById('stat-living-exp-label').textContent = `${labelPrefix}생활비사용액`;
-        const livingExp = totalActualExp - shiftedCardExp;
+        const livingExp = totalActualExp - shiftedCardExp; // New Formula: Total Exp - Prev Card Exp
         setVal('stat-living-exp-value', livingExp);
 
         // footer stats
@@ -489,7 +479,8 @@ const App = {
         
         const livingBalanceEl = document.getElementById('stat-living-balance');
         if (livingBalanceEl) {
-             const livingBalance = totalIncomeForMonth - totalActualExp;
+             // New Formula: Fixed Income - (Prev Card + Cash Exp + Total Fixed Expenses)
+             const livingBalance = totalFixedIncomeBase - (shiftedCardExp + actualCashExp + totalFixedExpense);
              livingBalanceEl.textContent = `₩${livingBalance.toLocaleString()}`;
              livingBalanceEl.style.color = livingBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)';
         }
