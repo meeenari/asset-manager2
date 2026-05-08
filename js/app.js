@@ -476,13 +476,17 @@ const App = {
         // Total Actual Spending (including Emergency)
         const totalActualExp = actualCardExp + actualCashExp + actualEmergencyExp;
 
-        // 2. Paid Fixed Expenses in current month (Normal account only)
-        const paidFixedExp = normalTxs
+        // 2. Paid Fixed Expenses in current month
+        const paidFixedExpTotal = actualMonthTxs
             .filter(t => t.isAutoFixed && t.type === 'expense' && t.category !== '저축')
             .reduce((sum, t) => sum + t.amount, 0);
         
-        const paidFixedCashExp = normalTxs
+        const paidFixedAccountTotal = actualMonthTxs
             .filter(t => t.isAutoFixed && t.type === 'expense' && t.paymentMethod?.type === 'account' && t.category !== '저축')
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        const actualTotalCashSpent = actualMonthTxs
+            .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'account' && t.category !== '저축')
             .reduce((sum, t) => sum + t.amount, 0);
 
         // 3. Shifted transactions (Card from prev month)
@@ -496,12 +500,12 @@ const App = {
             .reduce((sum, t) => sum + t.amount, 0);
         const totalIncomeForMonth = totalFixedIncomeBase + extraIncomeReceived;
 
-        // 생활비사용액 = (당월카드 + 당월현금) - 고정비  (비상금은 위에서 이미 제외됨)
-        const livingExp = (actualCardExp || 0) + (actualCashExp || 0) - (paidFixedExp || 0);
+        // 생활비사용액 = (당월 카드 + 당월 현금(비상금제외)) - 고정비총액
+        const livingExp = (actualCardExp || 0) + (actualCashExp || 0) - (paidFixedExpTotal || 0);
 
-        // 5. Projected Month-end Balance (User formula: Income - Prev Card Bill - Actual Cash Exp - Remaining Account Fixed - Actual Emergency Exp)
-        const remainingFixedAccountExp = (totalFixedExpenseAccountOnly || 0) - (paidFixedCashExp || 0);
-        const projectedBalance = (totalIncomeForMonth || 0) - (shiftedCardExp || 0) - (actualCashExp || 0) - (actualEmergencyExp || 0) - (remainingFixedAccountExp || 0);
+        // 5. Projected Month-end Balance
+        const remainingFixedAccount = Math.max(0, (totalFixedExpenseAccountOnly || 0) - (paidFixedAccountTotal || 0));
+        const projectedBalance = (totalIncomeForMonth || 0) - (shiftedCardExp || 0) - (actualTotalCashSpent || 0) - remainingFixedAccount;
 
         // 6. Update DOM
         const setVal = (id, val, color) => {
