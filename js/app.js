@@ -461,7 +461,7 @@ const App = {
             .reduce((sum, t) => sum + t.amount, 0);
         
         const actualCashExp = actualMonthTxs
-            .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'account' && t.paymentMethod?.name !== '비상금통장' && t.category !== '저축')
+            .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'account' && t.category !== '저축')
             .reduce((sum, t) => sum + t.amount, 0);
             
         const totalActualExp = actualCardExp + actualCashExp;
@@ -493,9 +493,9 @@ const App = {
 
         const livingExp = (totalActualExp || 0) - (paidFixedExp || 0) - (actualEmergencyExp || 0);
 
-        // 5. Projected Month-end Balance (User formula: Income - Prev Card Bill - Actual Cash Exp - Remaining Account Fixed - Actual Emergency Exp)
+        // 5. Projected Month-end Balance (User formula: Income - Prev Card Bill - Actual Cash Exp - Remaining Account Fixed)
         const remainingFixedAccountExp = (totalFixedExpenseAccountOnly || 0) - (paidFixedCashExp || 0);
-        const projectedBalance = (totalIncomeForMonth || 0) - (shiftedCardExp || 0) - (actualCashExp || 0) - (remainingFixedAccountExp || 0) - (actualEmergencyExp || 0);
+        const projectedBalance = (totalIncomeForMonth || 0) - (shiftedCardExp || 0) - (actualCashExp || 0) - (remainingFixedAccountExp || 0);
 
         // 6. Update DOM
         const setVal = (id, val, color) => {
