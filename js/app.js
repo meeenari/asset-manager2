@@ -430,8 +430,15 @@ const App = {
         // currentBalance = Total Monthly Income - (Prev Card Bill + Variable Cash Spending + Total Monthly Fixed Expenses)
         const currentBalance = totalIncomeForMonth - (shiftedCardExp + variableCashExp + totalFixedExpense);
 
-        // 생활비사용액 = (Actual Card + Actual Cash) - Total Fixed Expenses
-        const livingExp = totalActualExp - totalFixedExpense;
+        // 생활비사용액 = 고정비(isAutoFixed)를 제외한 순수 변동 지출액
+        const livingExp = actualMonthTxs
+            .filter(t => t.type === 'expense' && !t.isAutoFixed && t.category !== '저축')
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        // 당월개인지출누계(재언+미나)
+        const personalSum = actualMonthTxs
+            .filter(t => t.type === 'expense' && (t.spendingType === 'personal_jaeeon' || t.spendingType === 'personal_mina') && t.category !== '저축')
+            .reduce((sum, t) => sum + t.amount, 0);
 
         // 5. Update DOM
         const setVal = (id, val, color) => {
@@ -462,6 +469,12 @@ const App = {
         
         document.getElementById('stat-living-exp-label').textContent = `${labelPrefix}생활비사용액`;
         setVal('stat-living-exp-value', livingExp);
+
+        const personalSumEl = document.getElementById('stat-personal-sum-value');
+        if (personalSumEl) {
+            personalSumEl.textContent = `₩${personalSum.toLocaleString()}`;
+            document.getElementById('stat-personal-sum-label').textContent = `${labelPrefix}당월개인지출누계(재언+미나)`;
+        }
 
         // Update footer stats
         const summarySavingsEl = document.getElementById('stat-accumulated-savings');
@@ -750,6 +763,7 @@ const App = {
             this.renderTransactionTable();
         };
 
+        const allTab = document.getElementById('tab-all-tx');
         const commonTab = document.getElementById('tab-common-tx');
         const personalTab = document.getElementById('tab-personal-tx');
         const lockMsg = document.getElementById('personal-tx-lock-msg');
@@ -757,18 +771,26 @@ const App = {
 
         const setTab = (mode) => {
             this.state.txTabMode = mode;
-            if (mode === 'common') {
+            [allTab, commonTab, personalTab].forEach(t => {
+                if (t) {
+                    t.style.color = 'var(--text-dim)';
+                    t.style.borderBottom = 'none';
+                }
+            });
+
+            if (mode === 'all') {
+                allTab.style.color = 'var(--primary-accent)';
+                allTab.style.borderBottom = '2px solid var(--primary-accent)';
+                lockMsg.style.display = 'none';
+                txCard.style.display = 'block';
+            } else if (mode === 'common') {
                 commonTab.style.color = 'var(--primary-accent)';
                 commonTab.style.borderBottom = '2px solid var(--primary-accent)';
-                personalTab.style.color = 'var(--text-dim)';
-                personalTab.style.borderBottom = 'none';
                 lockMsg.style.display = 'none';
                 txCard.style.display = 'block';
             } else {
                 personalTab.style.color = 'var(--primary-accent)';
                 personalTab.style.borderBottom = '2px solid var(--primary-accent)';
-                commonTab.style.color = 'var(--text-dim)';
-                commonTab.style.borderBottom = 'none';
                 
                 if (this.state.isMinaUnlocked) {
                     lockMsg.style.display = 'none';
@@ -781,8 +803,9 @@ const App = {
             this.renderTransactionTable();
         };
 
-        commonTab.onclick = () => setTab('common');
-        personalTab.onclick = () => setTab('personal');
+        if (allTab) allTab.onclick = () => setTab('all');
+        if (commonTab) commonTab.onclick = () => setTab('common');
+        if (personalTab) personalTab.onclick = () => setTab('personal');
         
         const unlockBtn = document.getElementById('unlock-personal-tx');
         if (unlockBtn) {
@@ -817,12 +840,14 @@ const App = {
             const isInMonth = t.date.startsWith(this.state.selectedMonth);
             if (!isInMonth) return false;
 
-            if (this.state.txTabMode === 'common') {
-                return (t.type === 'expense' && t.spendingType === 'common') || 
-                       (t.type === 'income' && t.incomeType === 'common');
+            if (this.state.txTabMode === 'all') {
+                return true;
+            } else if (this.state.txTabMode === 'common') {
+                return (t.spendingType === 'common') || (t.incomeType === 'common');
             } else {
-                return (t.type === 'expense' && t.spendingType === 'personal_mina') || 
-                       (t.type === 'income' && t.incomeType === 'personal_mina');
+                // Personal tab: show both jaeeon and mina personal
+                return (t.spendingType === 'personal_jaeeon' || t.spendingType === 'personal_mina') || 
+                       (t.incomeType === 'personal_jaeeon' || t.incomeType === 'personal_mina');
             }
         });
 
@@ -1337,7 +1362,10 @@ const App = {
             merchant: `[고정] ${item.name}`,
             amount: parseInt(item.amount),
             category: item.category || '기타',
-            paymentMethod: { type: 'account', name: item.source || '자동이체' },
+            paymentMethod: { 
+                type: this.state.paymentMethods.cards.includes(item.source) ? 'card' : 'account', 
+                name: item.source || '자동이체' 
+            },
             isAutoFixed: true,
             fixedCostName: item.name
         });

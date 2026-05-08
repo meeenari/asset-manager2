@@ -94,7 +94,13 @@
             <div class="glass-card animate-fade" style="border-top: 3px solid #10b981;">
                 <div class="stat-header" id="stat-living-exp-label">생활비사용액</div>
                 <div class="stat-value" id="stat-living-exp-value">₩0</div>
-                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">당월지출 - 총고정비 (전월카드 제외)</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">고정비 제외 순수 변동 지출</div>
+            </div>
+            <!-- Card 7: 개인지출누계 -->
+            <div class="glass-card animate-fade" style="border-top: 3px solid #6366f1;" id="card-personal-sum">
+                <div class="stat-header" id="stat-personal-sum-label">당월개인지출누계(재언+미나)</div>
+                <div class="stat-value" id="stat-personal-sum-value">₩0</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">개인 지출 항목 합계 (저축 제외)</div>
             </div>
         </div>
 
@@ -219,8 +225,9 @@
                 </div>
 
                 <div style="display: flex; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border);">
-                    <div id="tab-common-tx" style="cursor: pointer; padding: 0.5rem 1rem; font-weight: 600; color: var(--primary-accent); border-bottom: 2px solid var(--primary-accent); transition: all 0.3s;">공동 내역</div>
-                    <div id="tab-personal-tx" style="cursor: pointer; padding: 0.5rem 1rem; font-weight: 600; color: var(--text-dim); transition: all 0.3s;">개인 내역 🔒</div>
+                    <div id="tab-all-tx" style="cursor: pointer; padding: 0.5rem 1rem; font-weight: 600; color: var(--text-dim); transition: all 0.3s;">전체</div>
+                    <div id="tab-common-tx" style="cursor: pointer; padding: 0.5rem 1rem; font-weight: 600; color: var(--primary-accent); border-bottom: 2px solid var(--primary-accent); transition: all 0.3s;">공동</div>
+                    <div id="tab-personal-tx" style="cursor: pointer; padding: 0.5rem 1rem; font-weight: 600; color: var(--text-dim); transition: all 0.3s;">개인(재언+미나) 🔒</div>
                 </div>
 
                 <div id="personal-tx-lock-msg" style="display: none; padding: 2rem; text-align: center;" class="glass-card">
