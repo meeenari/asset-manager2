@@ -257,7 +257,22 @@ const App = {
             return;
         }
 
-        const template = document.getElementById(this.state.currentPage === 'dashboard-mina' ? 'tpl-dashboard' : `tpl-${this.state.currentPage}`);
+        const templateId = this.state.currentPage === 'dashboard-mina' ? 'tpl-dashboard' : `tpl-${this.state.currentPage}`;
+        const template = document.getElementById(templateId);
+        
+        if (!template) {
+            console.error(`Template not found: ${templateId}`);
+            // Fallback to dashboard to prevent white screen
+            this.state.currentPage = 'dashboard';
+            const fallbackTemplate = document.getElementById('tpl-dashboard');
+            if (fallbackTemplate) {
+                main.innerHTML = '';
+                main.appendChild(fallbackTemplate.content.cloneNode(true));
+                this.initDashboard('common');
+            }
+            return;
+        }
+
         main.innerHTML = '';
         main.appendChild(template.content.cloneNode(true));
 
