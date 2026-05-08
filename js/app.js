@@ -473,7 +473,7 @@ const App = {
         const personalSumEl = document.getElementById('stat-personal-sum-value');
         if (personalSumEl) {
             personalSumEl.textContent = `₩${personalSum.toLocaleString()}`;
-            document.getElementById('stat-personal-sum-label').textContent = `${labelPrefix}당월개인지출누계(재언+미나)`;
+            document.getElementById('stat-personal-sum-label').textContent = `${labelPrefix}개인지출합계`;
         }
 
         // Update footer stats
@@ -1498,6 +1498,7 @@ const App = {
                                 <th style="padding: 1rem; text-align: left;">내용</th>
                                 <th style="padding: 1rem; text-align: left;">결제수단</th>
                                 <th style="padding: 1rem; text-align: right;">금액</th>
+                                <th style="padding: 1rem; text-align: center;">삭제</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1512,6 +1513,9 @@ const App = {
                         <td style="padding: 1rem; font-size: 0.85rem;">${pmLabel}</td>
                         <td style="padding: 1rem; text-align: right; font-weight: 600; color: ${t.type === 'income' ? 'var(--success)' : 'inherit'}">
                             ${t.type === 'income' ? '+' : ''}₩${t.amount.toLocaleString()}
+                        </td>
+                        <td style="padding: 1rem; text-align: center;">
+                            <button onclick="App.deleteTransaction(${t.id}); App.initPmSummary();" style="background: none; border: none; color: var(--danger); cursor: pointer; opacity: 0.6; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">✕</button>
                         </td>
                     </tr>
                 `;

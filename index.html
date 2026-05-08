@@ -59,7 +59,8 @@
             </div>
         </header>
 
-        <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <!-- Row 1: Expenditure Totals -->
             <!-- Card 1: 당월지출누계 -->
             <div class="glass-card animate-fade" style="border-top: 3px solid #f43f5e;">
                 <div class="stat-header" id="stat-total-exp-label">당월지출누계</div>
@@ -84,6 +85,8 @@
                 <div class="stat-value" id="stat-prev-card-exp-value">₩0</div>
                 <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">이번 달 결제될 카드 대금</div>
             </div>
+
+            <!-- Row 2: Balance & Variable Spending -->
             <!-- Card 5: 현재잔액 -->
             <div class="glass-card animate-fade" style="border-top: 3px solid var(--primary-accent);">
                 <div class="stat-header" id="stat-balance-label">현재잔액</div>
@@ -96,11 +99,11 @@
                 <div class="stat-value" id="stat-living-exp-value">₩0</div>
                 <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">고정비 제외 순수 변동 지출</div>
             </div>
-            <!-- Card 7: 개인지출누계 -->
+            <!-- Card 7: 개인지출합계 -->
             <div class="glass-card animate-fade" style="border-top: 3px solid #6366f1;" id="card-personal-sum">
-                <div class="stat-header" id="stat-personal-sum-label">당월개인지출누계(재언+미나)</div>
+                <div class="stat-header" id="stat-personal-sum-label">개인지출합계</div>
                 <div class="stat-value" id="stat-personal-sum-value">₩0</div>
-                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">개인 지출 항목 합계 (저축 제외)</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">개인 항목 합계 (저축 제외)</div>
             </div>
         </div>
 
