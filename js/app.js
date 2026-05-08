@@ -26,7 +26,8 @@ const App = {
         isFixedIncomesCollapsed: false,
         minaPassword: '0000',
         isMinaUnlocked: false,
-        txTabMode: 'common'
+        txTabMode: 'common',
+        schedules: []
     },
 
     init() {
@@ -95,6 +96,7 @@ const App = {
                     if (!Array.isArray(this.state.transactions)) this.state.transactions = [];
                     if (!Array.isArray(this.state.fixedCosts)) this.state.fixedCosts = [];
                     if (!Array.isArray(this.state.fixedIncomes)) this.state.fixedIncomes = [];
+                    if (!Array.isArray(this.state.schedules)) this.state.schedules = [];
                     if (!this.state.selectedMonth) this.state.selectedMonth = new Date().toISOString().slice(0, 7);
                     
                     if (this.isFirstSync) {
@@ -532,6 +534,9 @@ const App = {
 
         safeSetText('stat-living-exp-label', `${labelPrefix}생활비사용액`);
         setVal('stat-living-exp-value', livingExp);
+
+        // Render Key Schedules
+        this.renderDashboardSchedules(mode);
 
         // Date labels
         const todayStr = new Date().toISOString().split('T')[0];
@@ -1322,7 +1327,92 @@ const App = {
         renderFixedIncomes();
         renderCategories();
         renderSourceDropdown();
+        this.renderSettingsSchedules();
         updateTotals();
+    },
+
+    renderDashboardSchedules(mode) {
+        const container = document.getElementById('dashboard-schedule-container');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        const currentMonth = this.state.selectedMonth;
+        
+        const filtered = (this.state.schedules || []).filter(s => {
+            const isMonthMatch = s.date.startsWith(currentMonth);
+            const isModeMatch = (mode === 'common' && s.type === 'common') || 
+                               (mode === 'mina' && s.type === 'personal_mina');
+            return isMonthMatch && isModeMatch;
+        }).sort((a, b) => a.date.localeCompare(b.date));
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<span style="color:var(--text-dim); font-size:0.8rem;">일정 없음</span>';
+            return;
+        }
+
+        filtered.forEach(s => {
+            const badge = document.createElement('span');
+            badge.style.background = s.type === 'common' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)';
+            badge.style.color = s.type === 'common' ? 'var(--primary-accent)' : 'var(--success)';
+            badge.style.padding = '4px 10px';
+            badge.style.borderRadius = '20px';
+            badge.style.fontSize = '0.8rem';
+            badge.style.fontWeight = '600';
+            badge.style.border = `1px solid ${s.type === 'common' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`;
+            
+            const day = s.date.split('-')[2];
+            badge.textContent = `${day}일: ${s.content}`;
+            container.appendChild(badge);
+        });
+    },
+
+    renderSettingsSchedules() {
+        const list = document.getElementById('schedules-list');
+        if (!list) return;
+        
+        list.innerHTML = '';
+        (this.state.schedules || []).sort((a,b) => b.date.localeCompare(a.date)).forEach((s, i) => {
+            const originalIndex = this.state.schedules.indexOf(s);
+            const span = document.createElement('span');
+            span.style.background = 'var(--glass-bg)';
+            span.style.border = '1px solid var(--glass-border)';
+            span.style.padding = '6px 12px';
+            span.style.borderRadius = '8px';
+            span.style.fontSize = '0.85rem';
+            span.style.display = 'flex';
+            span.style.alignItems = 'center';
+            span.style.gap = '8px';
+            
+            const typeLabel = s.type === 'common' ? '공동' : (s.type === 'personal_jaeeon' ? '재언' : '미나');
+            span.innerHTML = `
+                <strong style="color:var(--primary-accent);">${s.date}</strong> 
+                <span>${s.content}</span> 
+                <small style="color:var(--text-dim);">[${typeLabel}]</small>
+                <span style="color:var(--danger); cursor:pointer; margin-left:5px;" onclick="App.deleteSchedule(${originalIndex})">✕</span>
+            `;
+            list.appendChild(span);
+        });
+
+        document.getElementById('add-schedule').onclick = () => {
+            const date = document.getElementById('new-schedule-date').value;
+            const content = document.getElementById('new-schedule-content').value.trim();
+            const type = document.getElementById('new-schedule-type').value;
+
+            if (date && content) {
+                this.state.schedules.push({ date, content, type });
+                this.saveData();
+                this.initSettings();
+                document.getElementById('new-schedule-content').value = '';
+            } else {
+                alert('날짜와 내용을 모두 입력해주세요.');
+            }
+        };
+    },
+
+    deleteSchedule(index) {
+        this.state.schedules.splice(index, 1);
+        this.saveData();
+        this.initSettings();
     },
 
     deleteFixedIncome(index) {

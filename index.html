@@ -50,9 +50,14 @@
     <!-- Dashboard Template -->
     <template id="tpl-dashboard">
         <header class="animate-fade" style="display: flex; justify-content: space-between; align-items: center;">
-            <div class="header-title">
-                <h1>자산 분석</h1>
-                <p>우리의 자산 흐름을 월별로 확인하세요.</p>
+            <div class="header-title" style="display: flex; align-items: center; gap: 20px;">
+                <div>
+                    <h1>자산 분석</h1>
+                    <p>우리의 자산 흐름을 월별로 확인하세요.</p>
+                </div>
+                <div id="dashboard-schedule-container" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <!-- Schedules will be injected here -->
+                </div>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <input type="month" id="dashboard-month-select" style="margin-bottom: 0; width: 160px;">
@@ -340,6 +345,30 @@
                             <button class="btn btn-secondary" id="add-card">추가</button>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="glass-card animate-fade" style="grid-column: span 2;">
+                <h3 style="margin-bottom: 1.5rem;">🗓️ 주요일정 관리</h3>
+                <div id="schedules-list" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 1.5rem;"></div>
+                <div style="display: grid; grid-template-columns: 150px 1fr 120px 80px; gap: 10px; align-items: end; border-top: 1px solid var(--glass-border); padding-top: 1.5rem;">
+                    <div>
+                        <label style="font-size: 0.75rem; color: var(--text-dim);">날짜</label>
+                        <input type="date" id="new-schedule-date" style="margin-bottom: 0;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.75rem; color: var(--text-dim);">내용</label>
+                        <input type="text" id="new-schedule-content" placeholder="일정 내용을 입력하세요" style="margin-bottom: 0;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.75rem; color: var(--text-dim);">구분</label>
+                        <select id="new-schedule-type" style="margin-bottom: 0;">
+                            <option value="common">공동</option>
+                            <option value="personal_jaeeon">재언 개인</option>
+                            <option value="personal_mina">미나 개인</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-secondary" id="add-schedule">추가</button>
                 </div>
             </div>
 
