@@ -619,17 +619,17 @@ const App = {
         const monthProgressEl = document.getElementById('month-progress');
         if (monthProgressEl) monthProgressEl.textContent = Math.round((daysElapsed / lastDay) * 100);
 
-        const forecastContainer = document.querySelector('.forecast-card > div');
-        const title = mode === 'common' ? '🏠 공동 생활비 예측' : '👩‍🎨 미나 개인 예측';
+        const forecastContainer = document.getElementById('forecast-stats');
+        const title = mode === 'common' ? '🏠 공동 예측' : '👩‍🎨 미나 예측';
         const projectedId = mode === 'common' ? 'projected-common' : 'projected-mina';
         const insightId = mode === 'common' ? 'insight-common' : 'insight-mina';
 
         if (forecastContainer) {
             forecastContainer.innerHTML = `
-                <div style="grid-column: span 3;">
-                    <div style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.5rem;">${title}</div>
-                    <div class="stat-value forecast-value" id="${projectedId}" style="font-size: 1.5rem;">₩0</div>
-                    <div id="${insightId}" style="font-size: 0.85rem; margin-top: 0.5rem; line-height: 1.4;"></div>
+                <div>
+                    <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.2rem;">${title}</div>
+                    <div class="stat-value forecast-value" id="${projectedId}" style="font-size: 1.3rem;">₩0</div>
+                    <div id="${insightId}" style="font-size: 0.75rem; margin-top: 0.3rem; line-height: 1.3;"></div>
                 </div>
             `;
         }

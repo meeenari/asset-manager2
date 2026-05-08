@@ -101,11 +101,22 @@
             </div>
             
             <!-- Card 4: 생활비사용액 -->
-            <div class="glass-card animate-fade" style="border-top: 3px solid #10b981; grid-column: span 2;">
+            <div class="glass-card animate-fade" style="border-top: 3px solid #10b981;">
                 <div class="stat-header" id="stat-living-exp-label">생활비사용액</div>
                 <div class="stat-value" id="stat-living-exp-value">₩0</div>
                 <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">당월지출 - 당월고정비 - 비상금지출</div>
             </div>
+
+            <!-- Card 5: 월말 지출 예측 -->
+            <div class="glass-card forecast-card animate-fade" style="border-top: 3px solid #f59e0b;">
+                <div class="stat-header">💡 월말 지출 예측</div>
+                <div id="forecast-stats" style="margin: 0.5rem 0;">
+                    <!-- Content injected here -->
+                </div>
+                <div style="margin-top: 0.5rem; font-size: 0.7rem; color: var(--text-dim); display: flex; justify-content: space-between;">
+                    <span>진행률: <span id="month-progress"></span>%</span>
+                    <span id="today-date" style="font-size: 0.65rem;"></span>
+                </div>
             </div>
         </div>
 
@@ -139,17 +150,7 @@
                 </div>
             </div>
 
-            <div class="glass-card forecast-card animate-fade" style="margin-top: 1rem;">
-                <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem;">💡 월말 지출 예측</h3>
-                
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
-                    <!-- Forecast content -->
-                </div>
-                <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-dim); display: flex; gap: 20px;">
-                    <span>오늘: <span id="today-date"></span></span>
-                    <span>월 진행률: <span id="month-progress"></span>%</span>
-                </div>
-            </div>
+
         </div>
     </template>
 
