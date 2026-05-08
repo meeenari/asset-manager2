@@ -468,6 +468,7 @@ const App = {
         setVal('stat-balance-value', currentBalance, currentBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)');
         
         document.getElementById('stat-living-exp-label').textContent = `${labelPrefix}생활비사용액`;
+        const livingExp = totalActualExp - shiftedCardExp;
         setVal('stat-living-exp-value', livingExp);
 
         // footer stats
@@ -1418,10 +1419,9 @@ const App = {
     },
 
     calculateEmergencyBalance() {
-        // Deposits = Income recorded as '비상금통장' + Expenses recorded as category '비상금' (transfers from other accounts)
+        // Emergency Fund Balance = Sum(Expenses with Category '비상금') - Sum(Expenses with PM '비상금통장')
         const deposits = this.state.transactions
-            .filter(t => (t.type === 'income' && t.paymentMethod?.name === '비상금통장') || 
-                         (t.type === 'expense' && t.category === '비상금'))
+            .filter(t => t.type === 'expense' && t.category === '비상금')
             .reduce((sum, item) => sum + item.amount, 0);
         
         // Withdrawals = Expenses where '비상금통장' was used as payment method
