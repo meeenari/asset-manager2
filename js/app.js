@@ -34,7 +34,7 @@ const App = {
         try {
             this.initFirebase();
             this.loadData();
-            this.state.currentPage = this.state.currentPage || 'dashboard';
+            this.state.currentPage = 'dashboard';
             this.state.isMinaUnlocked = false;
             
             if (typeof this.checkAutomaticTransactions === 'function') {
@@ -506,8 +506,13 @@ const App = {
         setVal('stat-balance-value', currentBalance, currentBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)');
         
         safeSetText('stat-living-exp-label', `${labelPrefix}생활비사용액`);
-        const livingExp = totalActualExp - paidFixedExp; // New Formula: Current Month Total - Current Month Paid Fixed
+        const livingExp = totalActualExp - paidFixedExp;
         setVal('stat-living-exp-value', livingExp);
+
+        // Date labels
+        const todayStr = new Date().toISOString().split('T')[0];
+        safeSetText('savings-date-label', `(${todayStr} 기준)`);
+        safeSetText('emergency-date-label', `(${todayStr} 기준)`);
 
         // footer stats
         const summarySavingsEl = document.getElementById('stat-accumulated-savings');
@@ -546,12 +551,11 @@ const App = {
         const totalFixedInc = relevantFixedIncomes.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
 
         this.updateForecast(mode, {
-            variableExp,
-            variableInc,
+            livingExp,
             totalFixedExp,
             totalFixedInc
         }, year, month - 1);
-        this.renderChart(filteredTransactions);
+        this.renderChart(actualMonthTxs);
         this.renderFixedTimeline(mode);
     },
 
@@ -587,45 +591,28 @@ const App = {
     },
 
     processPotForecast(mode, data, daysElapsed, lastDay, isCurrentMonth) {
-        // Advanced Forecast Logic:
-        // Variable expenses are projected linearly based on daily average.
-        // Fixed expenses are added as a constant total for the month.
-        const dailyVarExp = data.variableExp / daysElapsed;
-        const projectedVarExp = Math.round(dailyVarExp * lastDay);
-        const totalProjectedExp = projectedVarExp + data.totalFixedExp;
-
-        // Same for income
-        const dailyVarInc = data.variableInc / daysElapsed;
-        const projectedVarInc = Math.round(dailyVarInc * lastDay);
-        const totalProjectedInc = projectedVarInc + data.totalFixedInc;
-
-        const netPotential = totalProjectedInc - totalProjectedExp;
-
+        // Simple linear forecast based on Living Expenses
+        const dailyLivingExp = data.livingExp / daysElapsed;
+        const projectedLivingExp = Math.round(dailyLivingExp * lastDay);
+        
         const key = mode === 'common' ? 'common' : 'mina';
         const valEl = document.getElementById(`projected-${key}`);
-        if (valEl) valEl.textContent = `₩${totalProjectedExp.toLocaleString()}`;
+        if (valEl) valEl.textContent = `₩${projectedLivingExp.toLocaleString()}`;
         
         const insightEl = document.getElementById(`insight-${key}`);
         if (!insightEl) return;
 
         if (isCurrentMonth) {
-            const dailyBudget = totalProjectedInc / lastDay;
-            const currentStatus = totalProjectedInc - totalProjectedExp;
+            const daysRemaining = lastDay - daysElapsed;
+            const projectedRemaining = Math.round(dailyLivingExp * daysRemaining);
             
-            if (netPotential >= 0) {
-                insightEl.innerHTML = `
-                    월말 예상 지출: ₩${totalProjectedExp.toLocaleString()}<br>
-                    월말 예상 잔액: <span style="color:var(--success); font-weight:600;">₩${netPotential.toLocaleString()}</span>
-                `;
-            } else {
-                insightEl.innerHTML = `
-                    월말 예상 지출: ₩${totalProjectedExp.toLocaleString()}<br>
-                    월말 예상 적자: <span style="color:var(--danger); font-weight:600;">₩${Math.abs(netPotential).toLocaleString()}</span>
-                `;
-            }
+            insightEl.innerHTML = `
+                현재 하루 평균: ₩${Math.round(dailyLivingExp).toLocaleString()}<br>
+                월말 예상 생활비: ₩${projectedLivingExp.toLocaleString()}<br>
+                <span style="color:var(--primary-accent);">남은 기간 예상 지출: ₩${projectedRemaining.toLocaleString()}</span>
+            `;
         } else {
-            // If not current month, just show final total
-            insightEl.innerHTML = `최종 지출: ₩${(data.variableExp + data.totalFixedExp).toLocaleString()}`;
+            insightEl.innerHTML = `최종 생활비 지출: ₩${data.livingExp.toLocaleString()}`;
         }
     },
 
