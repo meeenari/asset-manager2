@@ -455,23 +455,33 @@ const App = {
             }
         });
 
-        // 당월 실제 카드/현금 지출 (저축 제외)
-        const actualCardExp = actualMonthTxs
+        // Split into Emergency and Normal for clear accounting
+        const emergencyTxs = actualMonthTxs.filter(t => t.paymentMethod?.name === '비상금통장');
+        const normalTxs = actualMonthTxs.filter(t => t.paymentMethod?.name !== '비상금통장');
+
+        // 당월 실제 비상금 지출 (저축 제외)
+        const actualEmergencyExp = emergencyTxs
+            .filter(t => t.type === 'expense' && t.category !== '저축')
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        // 당월 실제 카드/현금 지출 (저축 제외, 비상금 제외)
+        const actualCardExp = normalTxs
             .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'card' && t.category !== '저축')
             .reduce((sum, t) => sum + t.amount, 0);
         
-        const actualCashExp = actualMonthTxs
+        const actualCashExp = normalTxs
             .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'account' && t.category !== '저축')
             .reduce((sum, t) => sum + t.amount, 0);
             
-        const totalActualExp = actualCardExp + actualCashExp;
+        // Total Actual Spending (including Emergency)
+        const totalActualExp = actualCardExp + actualCashExp + actualEmergencyExp;
 
-        // 2. Paid Fixed Expenses in current month
-        const paidFixedExp = actualMonthTxs
+        // 2. Paid Fixed Expenses in current month (Normal account only)
+        const paidFixedExp = normalTxs
             .filter(t => t.isAutoFixed && t.type === 'expense' && t.category !== '저축')
             .reduce((sum, t) => sum + t.amount, 0);
         
-        const paidFixedCashExp = actualMonthTxs
+        const paidFixedCashExp = normalTxs
             .filter(t => t.isAutoFixed && t.type === 'expense' && t.paymentMethod?.type === 'account' && t.category !== '저축')
             .reduce((sum, t) => sum + t.amount, 0);
 
@@ -486,16 +496,12 @@ const App = {
             .reduce((sum, t) => sum + t.amount, 0);
         const totalIncomeForMonth = totalFixedIncomeBase + extraIncomeReceived;
 
-        // Emergency Fund Spending in current month
-        const actualEmergencyExp = actualMonthTxs
-            .filter(t => t.type === 'expense' && t.paymentMethod?.name === '비상금통장')
-            .reduce((sum, t) => sum + t.amount, 0);
+        // 생활비사용액 = (당월카드 + 당월현금) - 고정비  (비상금은 위에서 이미 제외됨)
+        const livingExp = (actualCardExp || 0) + (actualCashExp || 0) - (paidFixedExp || 0);
 
-        const livingExp = (totalActualExp || 0) - (paidFixedExp || 0) - (actualEmergencyExp || 0);
-
-        // 5. Projected Month-end Balance (User formula: Income - Prev Card Bill - Actual Cash Exp - Remaining Account Fixed)
+        // 5. Projected Month-end Balance (User formula: Income - Prev Card Bill - Actual Cash Exp - Remaining Account Fixed - Actual Emergency Exp)
         const remainingFixedAccountExp = (totalFixedExpenseAccountOnly || 0) - (paidFixedCashExp || 0);
-        const projectedBalance = (totalIncomeForMonth || 0) - (shiftedCardExp || 0) - (actualCashExp || 0) - (remainingFixedAccountExp || 0);
+        const projectedBalance = (totalIncomeForMonth || 0) - (shiftedCardExp || 0) - (actualCashExp || 0) - (actualEmergencyExp || 0) - (remainingFixedAccountExp || 0);
 
         // 6. Update DOM
         const setVal = (id, val, color) => {
