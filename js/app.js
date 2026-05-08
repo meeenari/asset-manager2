@@ -449,9 +449,13 @@ const App = {
             
         const totalActualExp = actualCardExp + actualCashExp;
 
-        // 2. Variable Cash spending (Account transactions NOT automatic fixed costs)
-        const variableCashExp = actualMonthTxs
-            .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'account' && !t.isAutoFixed && t.category !== '저축')
+        // 2. Paid Fixed Expenses in current month
+        const paidFixedExp = actualMonthTxs
+            .filter(t => t.isAutoFixed && t.type === 'expense' && t.category !== '저축')
+            .reduce((sum, t) => sum + t.amount, 0);
+        
+        const paidFixedCashExp = actualMonthTxs
+            .filter(t => t.isAutoFixed && t.type === 'expense' && t.paymentMethod?.type === 'account' && t.category !== '저축')
             .reduce((sum, t) => sum + t.amount, 0);
 
         // 3. Shifted transactions (Card from prev month)
@@ -465,8 +469,9 @@ const App = {
             .reduce((sum, t) => sum + t.amount, 0);
         const totalIncomeForMonth = totalFixedIncomeBase + extraIncomeReceived;
 
-        // currentBalance = Total Monthly Income - (Prev Card Bill + Variable Cash Spending + Total Monthly Fixed Expenses)
-        const currentBalance = totalIncomeForMonth - (shiftedCardExp + variableCashExp + totalFixedExpense);
+        // currentBalance = Total Income - Prev Card Bill - All Cash Exp - (Total Fixed Expense - Paid Fixed Cash Exp)
+        // This ensures all cash is subtracted, and future fixed expenses are also subtracted, without double counting.
+        const currentBalance = totalIncomeForMonth - shiftedCardExp - actualCashExp - (totalFixedExpense - paidFixedCashExp);
 
         // 5. Update DOM
         const setVal = (id, val, color) => {
@@ -501,7 +506,7 @@ const App = {
         setVal('stat-balance-value', currentBalance, currentBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)');
         
         safeSetText('stat-living-exp-label', `${labelPrefix}생활비사용액`);
-        const livingExp = totalActualExp - shiftedCardExp;
+        const livingExp = totalActualExp - paidFixedExp; // New Formula: Current Month Total - Current Month Paid Fixed
         setVal('stat-living-exp-value', livingExp);
 
         // footer stats
@@ -522,8 +527,8 @@ const App = {
         
         const livingBalanceEl = document.getElementById('stat-living-balance');
         if (livingBalanceEl) {
-             // New Formula: Fixed Income - (Prev Card + Cash Exp + Total Fixed Expenses)
-             const livingBalance = totalFixedIncomeBase - (shiftedCardExp + actualCashExp + totalFixedExpense);
+             // New Formula: Fixed Income - Prev Card Bill - All Cash Exp - (Total Fixed Expense - Paid Fixed Cash Exp)
+             const livingBalance = totalFixedIncomeBase - shiftedCardExp - actualCashExp - (totalFixedExpense - paidFixedCashExp);
              livingBalanceEl.textContent = `₩${livingBalance.toLocaleString()}`;
              livingBalanceEl.style.color = livingBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)';
         }
