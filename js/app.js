@@ -32,6 +32,7 @@ const App = {
     init() {
         console.log("App initializing...");
         try {
+            this.state.selectedMonth = new Date().toISOString().slice(0, 7);
             this.initFirebase();
             this.loadData();
             this.state.currentPage = 'dashboard';
@@ -79,12 +80,16 @@ const App = {
                     // Update state but keep some local-only properties if needed
                     const currentPage = this.state.currentPage;
                     const isMinaUnlocked = this.state.isMinaUnlocked;
+                    const selectedMonth = this.state.selectedMonth;
+                    const txTabMode = this.state.txTabMode;
                     
                     this.state = { ...this.state, ...data };
                     
                     // Restore local-only/session state
                     this.state.currentPage = currentPage;
                     this.state.isMinaUnlocked = isMinaUnlocked;
+                    this.state.selectedMonth = selectedMonth;
+                    this.state.txTabMode = txTabMode;
 
                     // Validation: Ensure essential arrays exist
                     if (!Array.isArray(this.state.transactions)) this.state.transactions = [];
@@ -156,6 +161,7 @@ const App = {
             // Don't sync session-only data
             delete syncData.isMinaUnlocked;
             delete syncData.currentPage; 
+            delete syncData.selectedMonth;
             delete syncData.txTabMode; // Keep tab mode local too
             
             this.db.ref('state').set(syncData).catch(err => console.error("Firebase Save Error:", err));
