@@ -85,6 +85,12 @@ const App = {
                     // Restore local-only/session state
                     this.state.currentPage = currentPage;
                     this.state.isMinaUnlocked = isMinaUnlocked;
+
+                    // Validation: Ensure essential arrays exist
+                    if (!Array.isArray(this.state.transactions)) this.state.transactions = [];
+                    if (!Array.isArray(this.state.fixedCosts)) this.state.fixedCosts = [];
+                    if (!Array.isArray(this.state.fixedIncomes)) this.state.fixedIncomes = [];
+                    if (!this.state.selectedMonth) this.state.selectedMonth = new Date().toISOString().slice(0, 7);
                     
                     if (this.isFirstSync) {
                         this.isFirstSync = false;
@@ -469,16 +475,17 @@ const App = {
             .reduce((sum, t) => sum + t.amount, 0);
         const totalIncomeForMonth = totalFixedIncomeBase + extraIncomeReceived;
 
-        const livingExp = totalActualExp - paidFixedExp;
+        const livingExp = (totalActualExp || 0) - (paidFixedExp || 0);
 
         // 5. Projected Month-end Balance
-        const lastDayInMonth = new Date(year, month, 0).getDate();
+        const lastDayInMonth = new Date(year, month, 0).getDate() || 30;
         const daysElapsedInMonth = (new Date().getFullYear() === year && new Date().getMonth() === month - 1) ? new Date().getDate() : lastDayInMonth;
-        const dailyLivingExpAvg = livingExp / daysElapsedInMonth;
+        const safeDaysElapsed = daysElapsedInMonth || 1;
+        const dailyLivingExpAvg = livingExp / safeDaysElapsed;
         const projectedLivingExpTotal = Math.round(dailyLivingExpAvg * lastDayInMonth);
         
         // Month-end Projection = Total Income - Prev Month Card Bill - Projected Living Exp - Total Fixed Expenses
-        const projectedBalance = totalIncomeForMonth - (shiftedCardExp + projectedLivingExpTotal + totalFixedExpense);
+        const projectedBalance = (totalIncomeForMonth || 0) - ((shiftedCardExp || 0) + (projectedLivingExpTotal || 0) + (totalFixedExpense || 0));
 
         // 6. Update DOM
         const setVal = (id, val, color) => {
