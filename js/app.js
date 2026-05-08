@@ -470,13 +470,7 @@ const App = {
         document.getElementById('stat-living-exp-label').textContent = `${labelPrefix}생활비사용액`;
         setVal('stat-living-exp-value', livingExp);
 
-        const personalSumEl = document.getElementById('stat-personal-sum-value');
-        if (personalSumEl) {
-            personalSumEl.textContent = `₩${personalSum.toLocaleString()}`;
-            document.getElementById('stat-personal-sum-label').textContent = `${labelPrefix}개인지출합계`;
-        }
-
-        // Update footer stats
+        // footer stats
         const summarySavingsEl = document.getElementById('stat-accumulated-savings');
         if (summarySavingsEl) summarySavingsEl.textContent = `₩${accumulatedSavings.toLocaleString()}`;
         
@@ -1425,17 +1419,24 @@ const App = {
     },
 
     calculateEmergencyBalance() {
-        // Emergency Fund Balance = Sum of expenses with category "비상금" (Deposits)
-        // - Sum of expenses with paymentMethod.name "비상금통장" (Withdrawals)
+        // Deposits = Income recorded as '비상금통장' + Expenses recorded as category '비상금' (transfers from other accounts)
         const deposits = this.state.transactions
-            .filter(t => t.type === 'expense' && t.category === '비상금')
+            .filter(t => (t.type === 'income' && t.paymentMethod?.name === '비상금통장') || 
+                         (t.type === 'expense' && t.category === '비상금'))
             .reduce((sum, item) => sum + item.amount, 0);
         
+        // Withdrawals = Expenses where '비상금통장' was used as payment method
         const withdrawals = this.state.transactions
-            .filter(t => t.type === 'expense' && t.paymentMethod && t.paymentMethod.name === '비상금통장')
+            .filter(t => t.type === 'expense' && t.paymentMethod?.name === '비상금통장')
             .reduce((sum, item) => sum + item.amount, 0);
         
         return deposits - withdrawals;
+    },
+
+    showEmergencyDetails() {
+        this.state.currentPage = 'pm-summary';
+        this.state.pendingPmFilter = 'account|비상금통장';
+        this.render();
     },
 
     initPmSummary() {
@@ -1455,6 +1456,11 @@ const App = {
             cards.map(c => `<option value="card|${c}">💳 ${c}</option>`).join('') +
             '<option value="account|비상금통장">🛡️ 비상금통장</option>';
 
+        if (this.state.pendingPmFilter) {
+            filterSelect.value = this.state.pendingPmFilter;
+            delete this.state.pendingPmFilter;
+        }
+
         const render = () => {
             const [type, name] = filterSelect.value.split('|');
             const selectedMonth = monthSelect.value;
@@ -1463,6 +1469,12 @@ const App = {
                 const isInMonth = t.date.startsWith(selectedMonth);
                 if (!isInMonth) return false;
                 if (filterSelect.value === 'all') return true;
+
+                // Special logic for Emergency Fund: include deposits (category '비상금')
+                if (name === '비상금통장') {
+                    return (t.paymentMethod?.name === name) || (t.category === '비상금');
+                }
+                
                 return t.paymentMethod && t.paymentMethod.type === type && t.paymentMethod.name === name;
             });
 
