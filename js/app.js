@@ -646,6 +646,19 @@ const App = {
             return;
         }
 
+        // Add Total Summary at the top
+        const totalAmount = sorted.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+        const summaryDiv = document.createElement('div');
+        summaryDiv.style.padding = '0.8rem 1rem';
+        summaryDiv.style.background = 'rgba(139, 92, 246, 0.05)';
+        summaryDiv.style.borderBottom = '1px solid var(--glass-border)';
+        summaryDiv.style.fontWeight = '700';
+        summaryDiv.style.color = 'var(--primary-accent)';
+        summaryDiv.style.textAlign = 'right';
+        summaryDiv.style.fontSize = '0.9rem';
+        summaryDiv.textContent = `고정비 합계: ₩${totalAmount.toLocaleString()}`;
+        timeline.appendChild(summaryDiv);
+
         sorted.forEach(item => {
             const div = document.createElement('div');
             div.className = 'timeline-item';
@@ -1021,6 +1034,17 @@ const App = {
         if (fixIncCat) fixIncCat.innerHTML = this.state.incomeCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
         if (fixCat) fixCat.innerHTML = this.state.categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
 
+        const updateTotals = () => {
+            const incTotal = (this.state.fixedIncomes || []).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+            const costTotal = (this.state.fixedCosts || []).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+            
+            const incTotalEl = document.getElementById('fixed-income-total-label');
+            const costTotalEl = document.getElementById('fixed-cost-total-label');
+            
+            if (incTotalEl) incTotalEl.textContent = `(합계: ₩${incTotal.toLocaleString()})`;
+            if (costTotalEl) costTotalEl.textContent = `(합계: ₩${costTotal.toLocaleString()})`;
+        };
+
         const renderSourceDropdown = () => {
             const fixSource = document.getElementById('fixed-source');
             if (!fixSource) return;
@@ -1290,6 +1314,7 @@ const App = {
         renderFixedIncomes();
         renderCategories();
         renderSourceDropdown();
+        updateTotals();
     },
 
     deleteFixedIncome(index) {
