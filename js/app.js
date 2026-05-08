@@ -507,6 +507,12 @@ const App = {
         const remainingFixedAccount = Math.max(0, (totalFixedExpenseAccountOnly || 0) - (paidFixedAccountTotal || 0));
         const projectedBalance = (totalIncomeForMonth || 0) - (shiftedCardExp || 0) - (actualTotalCashSpent || 0) - remainingFixedAccount;
 
+        // Display balance detail
+        const detailEl = document.getElementById('stat-balance-detail');
+        if (detailEl) {
+            detailEl.textContent = `${(totalIncomeForMonth || 0).toLocaleString()} - (${(shiftedCardExp || 0).toLocaleString()} + ${(actualTotalCashSpent || 0).toLocaleString()} + ${remainingFixedAccount.toLocaleString()})`;
+        }
+
         // 6. Update DOM
         const setVal = (id, val, color) => {
             const el = document.getElementById(id);
