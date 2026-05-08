@@ -393,6 +393,9 @@ const App = {
             (mode === 'mina' && item.spendingType === 'personal_mina')
         );
         const totalFixedExpense = relevantFixedCosts.reduce((sum, item) => sum + parseInt(item.amount), 0);
+        const totalFixedExpenseAccountOnly = relevantFixedCosts
+            .filter(item => !this.state.paymentMethods.cards.includes(item.source))
+            .reduce((sum, item) => sum + parseInt(item.amount), 0);
         
         // --- Split Calculations ---
         const getSum = (arr, type, categoryType, targetType) => arr
@@ -484,8 +487,8 @@ const App = {
         const dailyLivingExpAvg = livingExp / safeDaysElapsed;
         const projectedLivingExpTotal = Math.round(dailyLivingExpAvg * lastDayInMonth);
         
-        // Month-end Projection = Total Income - Prev Month Card Bill - Projected Living Exp - Total Fixed Expenses
-        const projectedBalance = (totalIncomeForMonth || 0) - ((shiftedCardExp || 0) + (projectedLivingExpTotal || 0) + (totalFixedExpense || 0));
+        // Month-end Projection = Total Income - Prev Month Card Bill - Projected Living Exp - Scheduled Account Fixed Expenses
+        const projectedBalance = (totalIncomeForMonth || 0) - ((shiftedCardExp || 0) + (projectedLivingExpTotal || 0) + (totalFixedExpenseAccountOnly || 0));
 
         // 6. Update DOM
         const setVal = (id, val, color) => {
