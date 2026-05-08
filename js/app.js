@@ -301,10 +301,15 @@ const App = {
             
             let isInMonth = false;
             if (isCard) {
-                // If it's a card, it should be reflected in the next month's calculation
-                const tDateObj = new Date(t.date);
-                const nextMonthDate = new Date(tDateObj.getFullYear(), tDateObj.getMonth() + 1, 1);
-                const reflectYearMonth = nextMonthDate.toISOString().slice(0, 7);
+                // Timezone-safe month shifting using string manipulation
+                const [y, m] = t.date.split('-').map(Number);
+                let nextY = y;
+                let nextM = m + 1;
+                if (nextM > 12) {
+                    nextM = 1;
+                    nextY++;
+                }
+                const reflectYearMonth = `${nextY}-${String(nextM).padStart(2, '0')}`;
                 isInMonth = reflectYearMonth === this.state.selectedMonth;
             } else {
                 isInMonth = t.date.startsWith(this.state.selectedMonth);
@@ -383,106 +388,92 @@ const App = {
 
         const totalRemaining = mode === 'common' ? commonRem : (mode === 'mina' ? minaRem : 0);
         
-        // Update stat cards visibility and content
-        const predictedCard = document.getElementById('card-predicted');
-        const savingsCard = document.getElementById('card-savings');
-        const cumulativeExpCard = document.getElementById('card-cumulative-expense');
+        // --- Calculate New Metrics ---
+        // 1. Transactions strictly within the selected month (No shifting)
+        const actualMonthTxs = this.state.transactions.filter(t => {
+            const isMonth = t.date.startsWith(this.state.selectedMonth);
+            if (!isMonth) return false;
+            if (mode === 'common') {
+                return (t.type === 'expense' && t.spendingType === 'common') || (t.type === 'income' && t.incomeType === 'common');
+            } else {
+                return (t.type === 'expense' && t.spendingType === 'personal_mina') || (t.type === 'income' && t.incomeType === 'personal_mina');
+            }
+        });
+
+        // 당월 실제 카드/현금 지출 (저축 제외)
+        const actualCardExp = actualMonthTxs
+            .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'card' && t.category !== '저축')
+            .reduce((sum, t) => sum + t.amount, 0);
         
-        const predictedBalance = totalFixedIncomeBase - totalFixedExpense;
-
-        if (mode === 'common') {
-            document.getElementById('stat-main-label-1').textContent = '🏠 공동 현재 잔액';
-            document.getElementById('stat-main-value-1').textContent = `₩${commonRem.toLocaleString()}`;
-            document.getElementById('stat-sub-inc-1').textContent = commonInc.toLocaleString();
-            document.getElementById('stat-sub-exp-1').textContent = commonExp.toLocaleString();
+        const actualCashExp = actualMonthTxs
+            .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'account' && t.category !== '저축')
+            .reduce((sum, t) => sum + t.amount, 0);
             
-            if (predictedCard) {
-                predictedCard.style.display = 'flex';
-                const predEl = document.getElementById('stat-predicted-value');
-                if (predEl) predEl.textContent = `₩${predictedBalance.toLocaleString()}`;
-            }
-            if (cumulativeExpCard) cumulativeExpCard.style.display = 'none';
-        } else {
-            document.getElementById('stat-main-label-1').textContent = '👩‍🎨 미나 현재 잔액';
-            document.getElementById('stat-main-value-1').textContent = `₩${minaRem.toLocaleString()}`;
-            document.getElementById('stat-sub-inc-1').textContent = minaInc.toLocaleString();
-            document.getElementById('stat-sub-exp-1').textContent = minaExp.toLocaleString();
-            
-            if (predictedCard) predictedCard.style.display = 'none';
-            if (cumulativeExpCard) {
-                cumulativeExpCard.style.display = 'flex';
-                // Show current month's total personal expense as per user request
-                document.getElementById('stat-cumulative-expense').textContent = `₩${minaExp.toLocaleString()}`;
-                const label = cumulativeExpCard.querySelector('.stat-header');
-                if (label) label.textContent = '📊 이번 달 개인 지출';
-            }
-        }
+        const totalActualExp = actualCardExp + actualCashExp;
 
-        const savingsLabel = document.getElementById('stat-savings-label');
-        const savingsEl = document.getElementById('stat-accumulated-savings-v2');
-
-        if (mode === 'common') {
-            if (savingsLabel) savingsLabel.textContent = '📊 이번 달 지출 현황';
-            if (savingsEl) savingsEl.textContent = `₩${commonExpPure.toLocaleString()}`;
-        } else {
-            if (savingsLabel) savingsLabel.textContent = '💰 미나 개인 저축 누계';
-            if (savingsEl) savingsEl.textContent = `₩${accumulatedSavings.toLocaleString()}`;
-            
-            if (cumulativeExpCard) {
-                // Also update Mina's personal expense card to exclude savings if appropriate
-                // User said "지출계산은 전부 공동으로... 단 저축은 제외", implying all "spending status" logic should exclude savings.
-                document.getElementById('stat-cumulative-expense').textContent = `₩${minaExpPure.toLocaleString()}`;
-            }
-        }
+        // 2. Shifted transactions for Balance calculation
+        // (Card from prev month, Account from current month)
+        // This is already what's in filteredTransactions (expenses only)
+        const shiftedCardExp = filteredTransactions
+            .filter(t => t.type === 'expense' && t.paymentMethod?.type === 'card' && t.category !== '저축')
+            .reduce((sum, t) => sum + t.amount, 0);
         
+        // currentBalance (using the user's logic: Income - (PrevCard + CurrentCash))
+        const currentBalance = mode === 'common' ? commonRem : minaRem;
+
+        // 3. Update DOM
+        const setVal = (id, val, color) => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = `₩${Math.round(val).toLocaleString()}`;
+                if (color) el.style.color = color;
+                else el.style.color = ''; // Reset
+            }
+        };
+
+        const labelPrefix = mode === 'common' ? '' : '미나 ';
+
+        document.getElementById('stat-total-exp-label').textContent = `${labelPrefix}당월지출누계`;
+        setVal('stat-total-exp-value', totalActualExp);
+
+        document.getElementById('stat-card-exp-label').textContent = `${labelPrefix}당월카드지출누계`;
+        setVal('stat-card-exp-value', actualCardExp);
+
+        document.getElementById('stat-cash-exp-label').textContent = `${labelPrefix}당월현금지출누계`;
+        setVal('stat-cash-exp-value', actualCashExp);
+
+        document.getElementById('stat-prev-card-exp-label').textContent = `${labelPrefix}전월카드지출누계`;
+        setVal('stat-prev-card-exp-value', shiftedCardExp);
+
+        document.getElementById('stat-balance-label').textContent = `${labelPrefix}현재잔액`;
+        setVal('stat-balance-value', currentBalance, currentBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)');
+        
+        const livingExp = totalActualExp - totalFixedExpense;
+        document.getElementById('stat-living-exp-label').textContent = `${labelPrefix}생활비사용액`;
+        setVal('stat-living-exp-value', livingExp);
+
+        // Update footer stats
         const summarySavingsEl = document.getElementById('stat-accumulated-savings');
         if (summarySavingsEl) summarySavingsEl.textContent = `₩${accumulatedSavings.toLocaleString()}`;
         
-        // --- New Metrics for Common Dashboard ---
-        if (mode === 'common') {
-            // 1. Living Expense Balance
-            // (Fixed Income - Fixed Expense) + (Current Month Expenses excluding Fixed Expenses)
-            // Note: Since expenses are positive, this is (Fixed Income - Fixed Expense) - (Variable Expenses)
-            const variableExpenses = filteredTransactions
-                .filter(t => t.type === 'expense' && t.spendingType === 'common' && !t.isAutoFixed && !t.fixedCostName)
-                .reduce((sum, item) => sum + item.amount, 0);
-            
-            const livingBalance = (totalFixedIncomeBase - totalFixedExpense) - variableExpenses;
-            const livingBalanceEl = document.getElementById('stat-living-balance');
-            if (livingBalanceEl) {
-                livingBalanceEl.textContent = `₩${livingBalance.toLocaleString()}`;
-                livingBalanceEl.style.color = livingBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)';
-            }
-
-            // 2. Monthly Card Spending (Actual spending in the selected month, not shifted)
-            const actualMonthCardSpending = this.state.transactions
-                .filter(t => {
-                    const isCorrectMonth = t.date.startsWith(this.state.selectedMonth);
-                    const isCard = t.paymentMethod && t.paymentMethod.type === 'card';
-                    const isCommon = (t.type === 'expense' && t.spendingType === 'common');
-                    return isCorrectMonth && isCard && isCommon;
-                })
-                .reduce((sum, item) => sum + item.amount, 0);
-            
-            const cardSpendingEl = document.getElementById('stat-card-spending');
-            if (cardSpendingEl) cardSpendingEl.textContent = `₩${actualMonthCardSpending.toLocaleString()}`;
-
-            // 3. Emergency Fund Balance (Current total balance)
+        // Emergency Balance (Only for common)
+        const colEmergency = document.getElementById('col-emergency-balance');
+        if (colEmergency) {
+            colEmergency.style.display = mode === 'common' ? 'block' : 'none';
             const emergencyBalance = this.calculateEmergencyBalance();
             const emergencyBalanceEl = document.getElementById('stat-emergency-balance');
             if (emergencyBalanceEl) emergencyBalanceEl.textContent = `₩${emergencyBalance.toLocaleString()}`;
-            
-            // Show/Hide cols for Mina mode
-            const colLiving = document.getElementById('col-living-balance');
-            const colEmergency = document.getElementById('col-emergency-balance');
-            if (colLiving) colLiving.style.display = 'block';
-            if (colEmergency) colEmergency.style.display = 'block';
-        } else {
-            // Mina Mode: Hide these or show something else
-            const colLiving = document.getElementById('col-living-balance');
-            const colEmergency = document.getElementById('col-emergency-balance');
-            if (colLiving) colLiving.style.display = 'none';
-            if (colEmergency) colEmergency.style.display = 'none';
+        }
+        
+        const colLiving = document.getElementById('col-living-balance');
+        if (colLiving) colLiving.style.display = mode === 'common' ? 'block' : 'none';
+        
+        const livingBalanceEl = document.getElementById('stat-living-balance');
+        if (livingBalanceEl) {
+             const variableExpenses = totalActualExp - totalFixedExpense;
+             const livingBalance = (totalFixedIncomeBase - totalFixedExpense) - variableExpenses;
+             livingBalanceEl.textContent = `₩${livingBalance.toLocaleString()}`;
+             livingBalanceEl.style.color = livingBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)';
         }
 
         // Prepare data for advanced forecasting

@@ -60,34 +60,41 @@
         </header>
 
         <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
-            <div class="glass-card animate-fade" style="border-top: 3px solid var(--primary-accent); display: flex; flex-direction: column; justify-content: center;">
-                <div class="stat-header" id="stat-main-label-1">현재 잔액</div>
-                <div class="stat-value" id="stat-main-value-1">₩0</div>
-                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);" id="stat-sub-label-1">
-                    수입: <span id="stat-sub-inc-1">0</span> | 지출: <span id="stat-sub-exp-1">0</span>
-                </div>
+            <!-- Card 1: 당월지출누계 -->
+            <div class="glass-card animate-fade" style="border-top: 3px solid #f43f5e;">
+                <div class="stat-header" id="stat-total-exp-label">당월지출누계</div>
+                <div class="stat-value" id="stat-total-exp-value">₩0</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);" id="stat-total-exp-sub">카드 + 현금 (저축제외)</div>
             </div>
-            <div class="glass-card animate-fade" style="border-top: 3px solid #10b981; display: flex; flex-direction: column; justify-content: center;" id="card-predicted">
-                <div class="stat-header">예측 잔액 (예산)</div>
-                <div class="stat-value" id="stat-predicted-value">₩0</div>
-                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">
-                    고정 수입 - 고정 지출
-                </div>
+            <!-- Card 2: 당월카드지출누계 -->
+            <div class="glass-card animate-fade" style="border-top: 3px solid #8b5cf6;">
+                <div class="stat-header" id="stat-card-exp-label">당월카드지출누계</div>
+                <div class="stat-value" id="stat-card-exp-value">₩0</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">이번 달 실제 카드 사용 합계</div>
             </div>
-            <div class="glass-card animate-fade" style="border-top: 3px solid #f43f5e; display: flex; flex-direction: column; justify-content: center;" id="card-savings">
-                <div class="stat-header" id="stat-savings-label">💰 저축 누계</div>
-                <div class="stat-value" id="stat-accumulated-savings-v2">₩0</div>
+            <!-- Card 3: 당월현금지출누계 -->
+            <div class="glass-card animate-fade" style="border-top: 3px solid #fbbf24;">
+                <div class="stat-header" id="stat-cash-exp-label">당월현금지출누계</div>
+                <div class="stat-value" id="stat-cash-exp-value">₩0</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">통장 지출 포함</div>
             </div>
-            <div class="glass-card animate-fade" style="border-top: 3px solid #8b5cf6; display: flex; flex-direction: column; justify-content: center;" id="card-card-spending">
-                <div class="stat-header">💳 당월 카드 지출</div>
-                <div class="stat-value" id="stat-card-spending">₩0</div>
-                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">
-                    이번 달 실제 카드 사용 합계
-                </div>
+            <!-- Card 4: 전월카드지출누계 -->
+            <div class="glass-card animate-fade" style="border-top: 3px solid #94a3b8;">
+                <div class="stat-header" id="stat-prev-card-exp-label">전월카드지출누계</div>
+                <div class="stat-value" id="stat-prev-card-exp-value">₩0</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">이번 달 결제될 카드 대금</div>
             </div>
-            <div class="glass-card animate-fade" style="border-top: 3px solid #fbbf24; display: flex; flex-direction: column; justify-content: center; display: none;" id="card-cumulative-expense">
-                <div class="stat-header">📊 개인 지출 누계</div>
-                <div class="stat-value" id="stat-cumulative-expense">₩0</div>
+            <!-- Card 5: 현재잔액 -->
+            <div class="glass-card animate-fade" style="border-top: 3px solid var(--primary-accent);">
+                <div class="stat-header" id="stat-balance-label">현재잔액</div>
+                <div class="stat-value" id="stat-balance-value">₩0</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">수입 - (전월카드 + 당월현금)</div>
+            </div>
+            <!-- Card 6: 생활비사용액 -->
+            <div class="glass-card animate-fade" style="border-top: 3px solid #10b981;">
+                <div class="stat-header" id="stat-living-exp-label">생활비사용액</div>
+                <div class="stat-value" id="stat-living-exp-value">₩0</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">당월지출 - 고정지출</div>
             </div>
         </div>
 
