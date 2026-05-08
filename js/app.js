@@ -469,11 +469,16 @@ const App = {
             .reduce((sum, t) => sum + t.amount, 0);
         const totalIncomeForMonth = totalFixedIncomeBase + extraIncomeReceived;
 
-        // currentBalance = Total Income - Prev Card Bill - All Cash Exp - (Total Fixed Expense - Paid Fixed Cash Exp)
-        // This ensures all cash is subtracted, and future fixed expenses are also subtracted, without double counting.
-        const currentBalance = totalIncomeForMonth - shiftedCardExp - actualCashExp - (totalFixedExpense - paidFixedCashExp);
+        // 5. Projected Month-end Balance
+        const lastDayInMonth = new Date(year, month, 0).getDate();
+        const daysElapsedInMonth = (new Date().getFullYear() === year && new Date().getMonth() === month - 1) ? new Date().getDate() : lastDayInMonth;
+        const dailyLivingExpAvg = livingExp / daysElapsedInMonth;
+        const projectedLivingExpTotal = Math.round(dailyLivingExpAvg * lastDayInMonth);
+        
+        // Month-end Projection = Total Income - Prev Month Card Bill - Projected Living Exp - Total Fixed Expenses
+        const projectedBalance = totalIncomeForMonth - (shiftedCardExp + projectedLivingExpTotal + totalFixedExpense);
 
-        // 5. Update DOM
+        // 6. Update DOM
         const setVal = (id, val, color) => {
             const el = document.getElementById(id);
             if (el) {
@@ -502,8 +507,8 @@ const App = {
         safeSetText('stat-prev-card-exp-label', `${labelPrefix}전월카드지출누계`);
         setVal('stat-prev-card-exp-value', shiftedCardExp);
 
-        safeSetText('stat-balance-label', `${labelPrefix}현재잔액`);
-        setVal('stat-balance-value', currentBalance, currentBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)');
+        safeSetText('stat-balance-label', `월말예상잔액`);
+        setVal('stat-balance-value', projectedBalance, projectedBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)');
         
         safeSetText('stat-living-exp-label', `${labelPrefix}생활비사용액`);
         const livingExp = totalActualExp - paidFixedExp;
@@ -1473,14 +1478,20 @@ const App = {
 
     initPmSummary() {
         const monthSelect = document.getElementById('pm-summary-month');
+        const catFilter = document.getElementById('pm-category-filter');
         const filterSelect = document.getElementById('pm-summary-filter');
         const content = document.getElementById('pm-summary-content');
 
-        if (!monthSelect || !filterSelect || !content) return;
+        if (!monthSelect || !catFilter || !filterSelect || !content) return;
 
         monthSelect.value = this.state.selectedMonth;
         
-        // Populate filter
+        // Populate Category Filter
+        const allCats = [...this.state.categories, ...this.state.incomeCategories];
+        catFilter.innerHTML = '<option value="all">모든 항목</option>' +
+            allCats.map(c => `<option value="${c}">${c}</option>`).join('');
+
+        // Populate PM Filter
         const accounts = this.state.paymentMethods.accounts || [];
         const cards = this.state.paymentMethods.cards || [];
         filterSelect.innerHTML = '<option value="all">모든 결제수단</option>' +
@@ -1494,12 +1505,18 @@ const App = {
         }
 
         const render = () => {
+            const selectedCat = catFilter.value;
             const [type, name] = filterSelect.value.split('|');
             const selectedMonth = monthSelect.value;
             
             const filtered = this.state.transactions.filter(t => {
                 const isInMonth = t.date.startsWith(selectedMonth);
                 if (!isInMonth) return false;
+                
+                // Category filter
+                if (selectedCat !== 'all' && t.category !== selectedCat) return false;
+
+                // PM filter
                 if (filterSelect.value === 'all') return true;
 
                 // Special logic for Emergency Fund: include deposits (category '비상금')
@@ -1596,6 +1613,7 @@ const App = {
             this.state.selectedMonth = e.target.value;
             render();
         };
+        catFilter.onchange = render;
         filterSelect.onchange = render;
 
         render();

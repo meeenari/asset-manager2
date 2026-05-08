@@ -27,7 +27,7 @@
                         <span>💸</span> 내역 관리
                     </li>
                     <li data-page="pm-summary">
-                        <span>📊</span> 결제수단별 내역
+                        <span>📊</span> 내역 상세
                     </li>
                     <li data-page="settings">
                         <span>⚙️</span> 설정
@@ -83,9 +83,9 @@
                 <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">이번 달 결제될 카드 대금</div>
             </div>
             
-            <!-- Card 3: 현재잔액 -->
+            <!-- Card 3: 월말예상잔액 -->
             <div class="glass-card animate-fade" style="border-top: 3px solid var(--primary-accent);">
-                <div class="stat-header" id="stat-balance-label">현재잔액</div>
+                <div class="stat-header" id="stat-balance-label">월말예상잔액</div>
                 <div class="stat-value" id="stat-balance-value">₩0</div>
                 <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim);">수입 - (전월카드 + 당월현금 + 예정고정비)</div>
             </div>
@@ -376,14 +376,17 @@
     <template id="tpl-pm-summary">
         <header class="animate-fade">
             <div class="header-title">
-                <h1>결제수단별 내역</h1>
-                <p>월별, 결제수단별 지출 합계와 상세 내역을 확인하세요.</p>
+                <h1>내역 상세</h1>
+                <p>월별, 항목별, 결제수단별 상세 내역을 확인하세요.</p>
             </div>
         </header>
 
         <div class="glass-card animate-fade" style="margin-bottom: 2rem;">
             <div style="display: flex; gap: 1rem; align-items: center;">
                 <input type="month" id="pm-summary-month" style="margin-bottom: 0; width: 160px;">
+                <select id="pm-category-filter" style="margin-bottom: 0; flex: 1;">
+                    <option value="all">모든 항목</option>
+                </select>
                 <select id="pm-summary-filter" style="margin-bottom: 0; flex: 1;">
                     <option value="all">모든 결제수단</option>
                 </select>
