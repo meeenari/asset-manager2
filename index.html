@@ -121,7 +121,7 @@
         </div>
 
         <div class="glass-card animate-fade" style="margin-bottom: 2rem; border-top: 3px solid var(--success);">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; align-items: center;">
                 <div>
                     <div class="stat-header">💰 총 저축 누계 <span id="savings-date-label" style="font-size: 0.75rem; font-weight: normal; color: var(--text-dim);"></span></div>
                     <div class="stat-value" id="stat-accumulated-savings" style="color: var(--success); font-size: 1.8rem;">₩0</div>
@@ -132,6 +132,13 @@
                         <button onclick="App.showEmergencyDetails()" style="background: rgba(139, 92, 246, 0.1); border: none; color: var(--primary-accent); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; font-weight: 600;">상세보기</button>
                     </div>
                     <div class="stat-value" id="stat-emergency-balance" style="font-size: 1.5rem;">₩0</div>
+                </div>
+                <div id="col-cash-balance" style="text-align: right;">
+                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px;">
+                        <div class="stat-header">💵 현금 잔액 <span id="cash-date-label" style="font-size: 0.75rem; font-weight: normal; color: var(--text-dim);"></span></div>
+                        <button onclick="App.showCashDetails()" style="background: rgba(16, 185, 129, 0.1); border: none; color: #10b981; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; font-weight: 600;">상세보기</button>
+                    </div>
+                    <div class="stat-value" id="stat-cash-balance" style="font-size: 1.5rem; color: #10b981;">₩0</div>
                 </div>
             </div>
         </div>

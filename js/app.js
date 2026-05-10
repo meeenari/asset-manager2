@@ -506,7 +506,7 @@ const App = {
 
         // Split into Emergency and Normal for clear accounting
         const emergencyTxs = actualMonthTxs.filter(t => t.paymentMethod?.name === '비상금통장');
-        const normalTxs = actualMonthTxs.filter(t => t.paymentMethod?.name !== '비상금통장');
+        const normalTxs = actualMonthTxs.filter(t => t.paymentMethod?.name !== '비상금통장' && t.paymentMethod?.name !== '현금');
 
         // ?諭????쇱젫 ??쑴湲썸묾?筌왖??(??????뽰뇚)
         const actualEmergencyExp = emergencyTxs
@@ -557,13 +557,13 @@ const App = {
         const variableCashExp = Math.max(0, (actualCashExp || 0) - (paidFixedAccountTotal || 0));
         const remainingFixedAccount = Math.max(0, (totalFixedExpenseAccountOnly || 0) - (paidFixedAccountTotal || 0));
         
-        // 새 공식: 총수입 - (지난달카드값 + 이번달현금지출(고정비 제외) + 남은고정비 + 비상금통장지출)
-        const projectedBalance = (totalIncomeForMonth || 0) - (shiftedCardExp || 0) - (variableCashExp || 0) - remainingFixedAccount - (actualEmergencyExp || 0);
+        // 새 공식: 총수입 - (전월카드사용액 + 당월현금사용액(변동) + 지출예정고정비)
+        const projectedBalance = (totalIncomeForMonth || 0) - (shiftedCardExp || 0) - (variableCashExp || 0) - remainingFixedAccount;
 
         // Display balance detail
         const detailEl = document.getElementById('stat-balance-detail');
         if (detailEl) {
-            detailEl.textContent = `₩${(totalIncomeForMonth || 0).toLocaleString()} - (₩${(shiftedCardExp || 0).toLocaleString()} + ₩${(variableCashExp || 0).toLocaleString()} + ₩${remainingFixedAccount.toLocaleString()} + ₩${(actualEmergencyExp || 0).toLocaleString()})`;
+            detailEl.textContent = `₩${(totalIncomeForMonth || 0).toLocaleString()} - (₩${(shiftedCardExp || 0).toLocaleString()} + ₩${(variableCashExp || 0).toLocaleString()} + ₩${remainingFixedAccount.toLocaleString()})`;
         }
 
         // 6. Update DOM
@@ -596,7 +596,7 @@ const App = {
         setVal('stat-prev-card-exp-value', shiftedCardExp);
 
         safeSetText('stat-balance-label', `월말 예상 잔액`);
-        safeSetText('stat-balance-formula', `총수입 - (전월카드 + 당월현금(변동) + 남은고정비 + 비상금지출)`);
+        safeSetText('stat-balance-formula', `수입 - (전월카드 + 당월현금(변동) + 예정고정비)`);
         setVal('stat-balance-value', projectedBalance, projectedBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)');
         
         safeSetText('stat-emergency-exp-label', `비상금 지출`);
@@ -624,6 +624,17 @@ const App = {
             const emergencyBalance = this.calculateEmergencyBalance();
             const emergencyBalanceEl = document.getElementById('stat-emergency-balance');
             if (emergencyBalanceEl) emergencyBalanceEl.textContent = `₩${emergencyBalance.toLocaleString()}`;
+        }
+        
+        // Cash Balance (Only for common)
+        const colCash = document.getElementById('col-cash-balance');
+        if (colCash) {
+            colCash.style.display = mode === 'common' ? 'block' : 'none';
+            const cashBalance = this.calculateCashBalance();
+            const cashBalanceEl = document.getElementById('stat-cash-balance');
+            if (cashBalanceEl) cashBalanceEl.textContent = `₩${cashBalance.toLocaleString()}`;
+            
+            safeSetText('cash-date-label', `(${todayStr} 기준)`);
         }
         
         const colLiving = document.getElementById('col-living-balance');
@@ -1689,9 +1700,29 @@ const App = {
         return deposits - withdrawals;
     },
 
+    calculateCashBalance() {
+        // Deposits: Sum of expenses with category "현금"
+        // Withdrawals: Sum of expenses with paymentMethod.name "현금"
+        const deposits = this.state.transactions
+            .filter(t => t.type === 'expense' && t.category === '현금')
+            .reduce((sum, item) => sum + item.amount, 0);
+        
+        const withdrawals = this.state.transactions
+            .filter(t => t.type === 'expense' && t.paymentMethod?.name === '현금')
+            .reduce((sum, item) => sum + item.amount, 0);
+        
+        return deposits - withdrawals;
+    },
+
     showEmergencyDetails() {
         this.state.currentPage = 'pm-summary';
         this.state.pendingPmFilter = 'account|비상금통장';
+        this.render();
+    },
+
+    showCashDetails() {
+        this.state.currentPage = 'pm-summary';
+        this.state.pendingPmFilter = 'account|현금';
         this.render();
     },
 
