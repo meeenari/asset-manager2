@@ -553,13 +553,17 @@ const App = {
         const livingExp = (totalActualExp || 0) - (actualEmergencyExp || 0) - (paidFixedExpTotal || 0);
 
         // 5. Projected Month-end Balance
+        // 변동 현금 지출 = (비상금 제외한 현금 지출) - (현금으로 이미 지불된 고정비)
+        const variableCashExp = Math.max(0, (actualCashExp || 0) - (paidFixedAccountTotal || 0));
         const remainingFixedAccount = Math.max(0, (totalFixedExpenseAccountOnly || 0) - (paidFixedAccountTotal || 0));
-        const projectedBalance = (totalIncomeForMonth || 0) - (shiftedCardExp || 0) - (actualCashExp || 0) - remainingFixedAccount;
+        
+        // 새 공식: 총수입 - (지난달카드값 + 이번달현금지출(고정비 제외) + 남은고정비 + 비상금통장지출)
+        const projectedBalance = (totalIncomeForMonth || 0) - (shiftedCardExp || 0) - (variableCashExp || 0) - remainingFixedAccount - (actualEmergencyExp || 0);
 
         // Display balance detail
         const detailEl = document.getElementById('stat-balance-detail');
         if (detailEl) {
-            detailEl.textContent = `₩${(totalIncomeForMonth || 0).toLocaleString()} - (₩${(shiftedCardExp || 0).toLocaleString()} + ₩${(actualCashExp || 0).toLocaleString()} + ₩${remainingFixedAccount.toLocaleString()})`;
+            detailEl.textContent = `₩${(totalIncomeForMonth || 0).toLocaleString()} - (₩${(shiftedCardExp || 0).toLocaleString()} + ₩${(variableCashExp || 0).toLocaleString()} + ₩${remainingFixedAccount.toLocaleString()} + ₩${(actualEmergencyExp || 0).toLocaleString()})`;
         }
 
         // 6. Update DOM
@@ -592,7 +596,7 @@ const App = {
         setVal('stat-prev-card-exp-value', shiftedCardExp);
 
         safeSetText('stat-balance-label', `월말 예상 잔액`);
-        safeSetText('stat-balance-formula', `총수입 - (지난달 카드값 + 이번달 현금지출 + 남은 고정비)`);
+        safeSetText('stat-balance-formula', `총수입 - (전월카드 + 당월현금(변동) + 남은고정비 + 비상금지출)`);
         setVal('stat-balance-value', projectedBalance, projectedBalance < 0 ? 'var(--danger)' : 'var(--primary-accent)');
         
         safeSetText('stat-emergency-exp-label', `비상금 지출`);
