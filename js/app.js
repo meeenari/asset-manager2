@@ -1690,25 +1690,25 @@ const App = {
 
     calculateEmergencyBalance() {
         const deposits = this.state.transactions
-            .filter(t => t.type === 'expense' && t.category === '비상금')
+            .filter(t => t.type === 'expense' && t.category === '비상금' && (t.spendingType === 'common' || t.incomeType === 'common'))
             .reduce((sum, item) => sum + item.amount, 0);
         
         const withdrawals = this.state.transactions
-            .filter(t => t.type === 'expense' && t.paymentMethod?.name === '비상금통장')
+            .filter(t => t.type === 'expense' && t.paymentMethod?.name === '비상금통장' && (t.spendingType === 'common' || t.incomeType === 'common'))
             .reduce((sum, item) => sum + item.amount, 0);
         
         return deposits - withdrawals;
     },
 
     calculateCashBalance() {
-        // Deposits: Sum of expenses with category "현금"
-        // Withdrawals: Sum of expenses with paymentMethod.name "현금"
+        // Deposits: Sum of expenses with category "현금" (Common only)
+        // Withdrawals: Sum of expenses with paymentMethod.name "현금" (Common only)
         const deposits = this.state.transactions
-            .filter(t => t.type === 'expense' && t.category === '현금')
+            .filter(t => t.type === 'expense' && t.category === '현금' && (t.spendingType === 'common' || t.incomeType === 'common'))
             .reduce((sum, item) => sum + item.amount, 0);
         
         const withdrawals = this.state.transactions
-            .filter(t => t.type === 'expense' && t.paymentMethod?.name === '현금')
+            .filter(t => t.type === 'expense' && t.paymentMethod?.name === '현금' && (t.spendingType === 'common' || t.incomeType === 'common'))
             .reduce((sum, item) => sum + item.amount, 0);
         
         return deposits - withdrawals;
